@@ -4,7 +4,6 @@ import { env } from "../../config/env.js";
 import type { RegistrationDraft } from "../../domain/registration/registration.types.js";
 import {
   BackendApiError,
-  BackendErrorResponse,
   InviteAlreadyProcessedError,
   InviteNotFoundError,
 } from "./backend-api.errors.js";
