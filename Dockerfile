@@ -21,4 +21,4 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 EXPOSE 8080
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/app/index.js"]
