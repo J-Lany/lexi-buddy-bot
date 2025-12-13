@@ -1,0 +1,118 @@
+import type { Bot } from "grammy";
+import {
+  ageGroupKeyboard,
+  startRegistrationKeyboard,
+} from "../keyboards/registration.keyboard.js";
+import {
+  isAgeGroup,
+  RegistrationStep,
+} from "../../domain/registration/registration.types.js";
+import type { RegistrationService } from "../../domain/registration/registration.service.js";
+import type { BotContext } from "../context.js";
+
+export function registerRegistrationHandlers(
+  bot: Bot<BotContext>,
+  regService: RegistrationService,
+) {
+  bot.command("start", async (ctx) => {
+    const from = ctx.from;
+    if (!from) return;
+
+    const telegramId = from.id;
+    const registered = await regService.isRegistered(telegramId);
+
+    if (registered) {
+      delete ctx.session.reg;
+      await ctx.reply(
+        `✅ Ты уже зарегистрирован(а), ${from.first_name}.\nЖди запрос от преподавателя 🙂`,
+      );
+      return;
+    }
+
+    ctx.session.reg = {
+      step: RegistrationStep.ASK_AGE_GROUP,
+      draft: {
+        telegramId,
+        username: from.username ?? null,
+        firstName: from.first_name,
+        lastName: from.last_name ?? null,
+      },
+    };
+
+    await ctx.reply(
+      `Привет, ${from.first_name}! 👋\n\n` +
+        `Я помогу тебе получать задания от преподавателя английского прямо здесь, в Telegram.\n\n` +
+        `Регистрация займёт меньше минуты.`,
+      { reply_markup: startRegistrationKeyboard() },
+    );
+  });
+
+  bot.command("cancel", async (ctx) => {
+    delete ctx.session.reg;
+    await ctx.reply("Ок, отменил. Напиши /start чтобы начать заново.");
+  });
+
+  bot.on("message:text", async (ctx) => {
+    const reg = ctx.session.reg;
+    if (!reg) return;
+
+    await ctx.reply(
+      "📝 Ты в процессе регистрации.\nПожалуйста, заверши её кнопками 👇\n\nМожно отменить: /cancel",
+    );
+  });
+
+  bot.on("callback_query:data", async (ctx) => {
+    const reg = ctx.session.reg;
+    if (!reg) return;
+
+    const data: string = ctx.callbackQuery.data;
+
+    if (data === "reg_cancel") {
+      delete ctx.session.reg;
+      await ctx.answerCallbackQuery();
+      await ctx.editMessageReplyMarkup();
+      await ctx.reply(
+        "Ок, регистрацию отменили. Напиши /start если передумаешь 🙂",
+      );
+      return;
+    }
+
+    if (data === "reg_begin") {
+      await ctx.answerCallbackQuery();
+      await ctx.editMessageReplyMarkup();
+
+      await ctx.reply("Выбери возрастную группу:", {
+        reply_markup: ageGroupKeyboard(),
+      });
+      return;
+    }
+
+    if (data.startsWith("reg_age:")) {
+      const ageGroupRaw = data.split(":")[1];
+      if (!ageGroupRaw || !isAgeGroup(ageGroupRaw)) {
+        await ctx.answerCallbackQuery({ text: "Некорректный выбор 😅" });
+        return;
+      }
+
+      reg.draft.ageGroup = ageGroupRaw;
+
+      try {
+        await regService.register(reg.draft);
+        delete ctx.session.reg;
+
+        await ctx.reply(
+          "✅ Готово! Ты зарегистрирован(а).\n\n" +
+            "Теперь преподаватель сможет отправить тебе запрос, и ты начнёшь получать задания сюда 🙂",
+        );
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        await ctx.reply(
+          `⚠️ Не получилось зарегистрироваться.\n\nПричина: ${msg}\n\nПопробуй /start заново или /cancel.`,
+        );
+      }
+      return;
+    }
+
+    await ctx.answerCallbackQuery();
+  });
+}
