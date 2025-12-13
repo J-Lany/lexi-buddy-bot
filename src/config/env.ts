@@ -15,5 +15,6 @@ export const env = {
 
   telegramBotToken: mustGet("TELEGRAM_BOT_TOKEN"),
   backendBaseUrl: mustGet("BACKEND_BASE_URL"),
-  internalApiToken: process.env.INTERNAL_API_TOKEN ?? null,
+  internalPort: Number(process.env.PORT ?? 8080),
+  telegramBotInternalToken: process.env.TELEGRAM_BOT_INTERNAL_TOKEN ?? null,
 };

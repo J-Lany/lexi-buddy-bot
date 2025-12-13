@@ -5,8 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
+    "start": "node dist/app/index.js",
+    "dev": "tsx watch src/app/index.ts",
     "build": "tsc -p tsconfig.json",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write .",
@@ -17,10 +17,12 @@
     "@eslint/js": "^9.38.0",
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
+    "express": "^5.2.1",
     "grammy": "^1.38.3",
     "typescript-eslint": "^8.46.2"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^22.7.4",
     "@typescript-eslint/eslint-plugin": "^8.8.0",
     "@typescript-eslint/parser": "^8.8.0",
