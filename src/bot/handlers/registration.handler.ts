@@ -3,9 +3,12 @@ import {
   ageGroupKeyboard,
   startRegistrationKeyboard,
 } from "../keyboards/registration.keyboard.js";
-import { RegistrationStep } from "../../domain/registration/registration.types.js";
+import {
+  isAgeGroup,
+  RegistrationStep,
+} from "../../domain/registration/registration.types.js";
 import type { RegistrationService } from "../../domain/registration/registration.service.js";
-import { BotContext } from "../context.js";
+import type { BotContext } from "../context.js";
 
 export function registerRegistrationHandlers(
   bot: Bot<BotContext>,
@@ -67,7 +70,7 @@ export function registerRegistrationHandlers(
     if (data === "reg_cancel") {
       ctx.session.reg = undefined;
       await ctx.answerCallbackQuery();
-      await ctx.editMessageReplyMarkup({ reply_markup: undefined });
+      await ctx.editMessageReplyMarkup();
       await ctx.reply(
         "Ок, регистрацию отменили. Напиши /start если передумаешь 🙂",
       );
@@ -76,7 +79,7 @@ export function registerRegistrationHandlers(
 
     if (data === "reg_begin") {
       await ctx.answerCallbackQuery();
-      await ctx.editMessageReplyMarkup({ reply_markup: undefined });
+      await ctx.editMessageReplyMarkup();
 
       await ctx.reply("Выбери возрастную группу:", {
         reply_markup: ageGroupKeyboard(),
@@ -85,11 +88,13 @@ export function registerRegistrationHandlers(
     }
 
     if (data.startsWith("reg_age:")) {
-      const ageGroup = data.split(":")[1];
-      reg.draft.ageGroup = ageGroup;
+      const ageGroupRaw = data.split(":")[1];
+      if (!ageGroupRaw || !isAgeGroup(ageGroupRaw)) {
+        await ctx.answerCallbackQuery({ text: "Некорректный выбор 😅" });
+        return;
+      }
 
-      await ctx.answerCallbackQuery();
-      await ctx.editMessageReplyMarkup({ reply_markup: undefined });
+      reg.draft.ageGroup = ageGroupRaw;
 
       try {
         await regService.register(reg.draft);

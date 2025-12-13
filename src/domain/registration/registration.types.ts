@@ -2,7 +2,6 @@ export type Level = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 export type AgeGroup = "UNDER_18" | "BETWEEN_18_35" | "OVER_35";
 
 export const RegistrationStep = {
-  ASK_LEVEL: "ASK_LEVEL",
   ASK_AGE_GROUP: "ASK_AGE_GROUP",
 } as const;
 
@@ -17,3 +16,7 @@ export type RegistrationDraft = {
   level?: Level;
   ageGroup?: AgeGroup;
 };
+
+export function isAgeGroup(v: string): v is AgeGroup {
+  return v === "UNDER_18" || v === "BETWEEN_18_35" || v === "OVER_35";
+}
