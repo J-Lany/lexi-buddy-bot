@@ -22,7 +22,7 @@ export function registerRegistrationHandlers(
     const registered = await regService.isRegistered(telegramId);
 
     if (registered) {
-      ctx.session.reg = undefined;
+      delete ctx.session.reg;
       await ctx.reply(
         `✅ Ты уже зарегистрирован(а), ${from.first_name}.\nЖди запрос от преподавателя 🙂`,
       );
@@ -48,7 +48,7 @@ export function registerRegistrationHandlers(
   });
 
   bot.command("cancel", async (ctx) => {
-    ctx.session.reg = undefined;
+    delete ctx.session.reg;
     await ctx.reply("Ок, отменил. Напиши /start чтобы начать заново.");
   });
 
@@ -68,7 +68,7 @@ export function registerRegistrationHandlers(
     const data: string = ctx.callbackQuery.data;
 
     if (data === "reg_cancel") {
-      ctx.session.reg = undefined;
+      delete ctx.session.reg;
       await ctx.answerCallbackQuery();
       await ctx.editMessageReplyMarkup();
       await ctx.reply(
@@ -98,7 +98,7 @@ export function registerRegistrationHandlers(
 
       try {
         await regService.register(reg.draft);
-        ctx.session.reg = undefined;
+        delete ctx.session.reg;
 
         await ctx.reply(
           "✅ Готово! Ты зарегистрирован(а).\n\n" +
