@@ -6,5 +6,5 @@ const container = createContainer();
 const bot = createBot(container);
 
 startInternalHttpServer(bot);
-
+bot.on("message", (ctx) => ctx.reply("я живой ✅"));
 await bot.start();

@@ -5,8 +5,12 @@ export class RegistrationService {
   constructor(private readonly backend: BackendApiService) {}
 
   async isRegistered(telegramId: number): Promise<boolean> {
-    const user = await this.backend.getByTelegramId(telegramId);
-    return Boolean(user);
+    try {
+      const user = await this.backend.getByTelegramId(telegramId);
+      return Boolean(user);
+    } catch {
+      return false;
+    }
   }
 
   async register(draft: RegistrationDraft): Promise<void> {
