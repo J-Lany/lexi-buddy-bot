@@ -14,8 +14,6 @@ export class RegistrationService {
   }
 
   async register(draft: RegistrationDraft): Promise<void> {
-    if (!draft.ageGroup) throw new Error("Возрастная группа не выбрана");
-
     await this.backend.registerTelegramStudent(draft);
   }
 }
