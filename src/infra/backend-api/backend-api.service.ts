@@ -44,8 +44,6 @@ export class BackendApiService {
       username: draft.username ?? null,
       firstName: draft.firstName,
       lastName: draft.lastName,
-      level: draft.level,
-      ageGroup: draft.ageGroup,
     });
     return res.data;
   }
@@ -80,5 +78,33 @@ export class BackendApiService {
         "RESPOND_FAILED",
       );
     }
+  }
+
+  async getStudentLessons(telegramId: number) {
+    const res = await this.http.get("/internal/student/lessons", {
+      params: { telegramId },
+    });
+    return res.data as {
+      items: Array<{
+        lessonId: number;
+        title: string;
+        level?: string | null;
+        topic?: string | null;
+        archived?: boolean;
+      }>;
+    };
+  }
+
+  async getStudentProfile(telegramId: number) {
+    const res = await this.http.get("/internal/student/profile", {
+      params: { telegramId },
+    });
+    return res.data as {
+      firstName?: string | null;
+      lastName?: string | null;
+      username?: string | null;
+      level?: string | null;
+      ageGroup?: string | null;
+    };
   }
 }

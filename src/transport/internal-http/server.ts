@@ -1,40 +1,46 @@
-import express, { type Request, type Response } from "express";
-import type { Bot } from "grammy";
-import type { BotContext } from "../telegram/context.js";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import { env } from "../../config/env.js";
 import { parseTeacherRequestPayload } from "./teacher-request.dto.js";
-import { TeacherRequestNotificationService } from "../../domain/notifications/teacher-request-notification.service.js";
+import type { TeacherRequestNotificationSender } from "../telegram/notifications/teacher-request.notification.js";
 
-function isAuthorized(req: Request): boolean {
+function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const token = req.header("x-internal-token");
-  return Boolean(
-    env.telegramBotInternalToken && token === env.telegramBotInternalToken,
-  );
+  const ok =
+    Boolean(env.telegramBotInternalToken) &&
+    token === env.telegramBotInternalToken;
+
+  if (!ok) return res.status(401).json({ error: "Unauthorized" });
+  next();
 }
 
-export function startInternalHttpServer(bot: Bot<BotContext>) {
+export function startInternalHttpServer(deps: {
+  teacherRequestNotifier: TeacherRequestNotificationSender;
+}) {
   const app = express();
   app.use(express.json({ limit: "256kb" }));
 
-  const notifier = new TeacherRequestNotificationService(bot);
+  app.post(
+    "/internal/teacher-request",
+    authMiddleware,
+    (req: Request, res: Response) => {
+      let payload;
+      try {
+        payload = parseTeacherRequestPayload(req.body);
+      } catch {
+        return res.status(400).json({ error: "Invalid payload" });
+      }
 
-  app.post("/internal/teacher-request", (req: Request, res: Response) => {
-    if (!isAuthorized(req))
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(202).json({ ok: true });
 
-    let payload;
-    try {
-      payload = parseTeacherRequestPayload(req.body);
-    } catch {
-      return res.status(400).json({ error: "Invalid payload" });
-    }
-
-    res.status(202).json({ ok: true });
-
-    void notifier.send(payload).catch((err) => {
-      console.error("[internal-http] telegram send failed", err);
-    });
-  });
+      void deps.teacherRequestNotifier.send(payload).catch((err) => {
+        console.error("[internal-http] telegram send failed", err);
+      });
+    },
+  );
 
   app.listen(env.internalPort, () => {
     console.log(`[internal-http] listening on :${env.internalPort}`);
