@@ -12,8 +12,8 @@ export function registerRegistrationRoutes(
     await ctx.reply("Ок, отменили. Напиши /start если захочешь снова 🙂");
   });
 
-  bot.on("message:text", async (ctx) => {
-    if (!ctx.session.reg) return;
+  bot.on("message:text", async (ctx, next) => {
+    if (!ctx.session.reg) return next();
 
     await ctx.reply(
       "Ты в процессе подключения 🙂\n" +

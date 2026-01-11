@@ -8,6 +8,8 @@ import { setupErrorHandler } from "../transport/telegram/middlewares/error-handl
 import { registerStartRoutes } from "../transport/telegram/routes/start.routes.js";
 import { registerRegistrationRoutes } from "../transport/telegram/routes/registration.routes.js";
 import { registerInvitesRoutes } from "../transport/telegram/routes/invites.routes.js";
+import { registerLessonsRoutes } from "../transport/telegram/routes/lessons.routes.js";
+import { registerProfileRoutes } from "../transport/telegram/routes/profile.routes.js";
 
 import type { Container } from "./container.js";
 
@@ -20,8 +22,10 @@ export function createBot(container: Container) {
   registerStartRoutes(bot, container.studentHomeService);
 
   registerRegistrationRoutes(bot, container.registrationService);
-
   registerInvitesRoutes(bot, container.invitesService);
+
+  registerLessonsRoutes(bot, container.lessonsService);
+  registerProfileRoutes(bot, container.profileService);
 
   return bot;
 }
