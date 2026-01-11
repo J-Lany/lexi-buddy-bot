@@ -1,16 +1,17 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
-import type { BackendApiService } from "../../../infra/backend-api/backend-api.service.js";
+
+import type { InvitesService } from "../../../domain/invites/invites.service.js";
 import {
   InviteAlreadyProcessedError,
   InviteNotFoundError,
-} from "../../../infra/backend-api/backend-api.errors.js";
+} from "../../../domain/invites/invites.errors.js";
 
 const inFlight = new Set<string>();
 
-export function registerTeacherRequestRoutes(
+export function registerInvitesRoutes(
   bot: Bot<BotContext>,
-  backend: BackendApiService,
+  invites: InvitesService,
 ) {
   bot.callbackQuery(/^(invite_accept|invite_decline):\d+$/, async (ctx) => {
     const m = /^(invite_accept|invite_decline):(\d+)$/.exec(
@@ -40,7 +41,7 @@ export function registerTeacherRequestRoutes(
 
     inFlight.add(key);
     try {
-      await backend.respondToTeacherRequestFromTelegram({
+      await invites.respond({
         inviteId,
         telegramId,
         accept: action === "invite_accept",

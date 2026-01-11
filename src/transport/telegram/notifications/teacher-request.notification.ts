@@ -1,6 +1,6 @@
 import type { Bot } from "grammy";
-import { teacherRequestKeyboard } from "../../transport/telegram/ui/keyboards/teacher-request.keyboard.js";
-import type { BotContext } from "../../transport/telegram/context.js";
+import type { BotContext } from "../context.js";
+import { teacherRequestKeyboard } from "../ui/keyboards/teacher-request.keyboard.js";
 
 export type TeacherRequestNotification = {
   telegramId: number;
@@ -9,7 +9,7 @@ export type TeacherRequestNotification = {
   message?: string | null;
 };
 
-export class TeacherRequestNotificationService {
+export class TeacherRequestNotificationSender {
   constructor(private readonly bot: Bot<BotContext>) {}
 
   async send(payload: TeacherRequestNotification) {

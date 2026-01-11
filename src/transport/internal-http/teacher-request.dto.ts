@@ -1,4 +1,4 @@
-import type { TeacherRequestNotification } from "../../domain/notifications/teacher-request-notification.service.js";
+import type { TeacherRequestNotification } from "../telegram/notifications/teacher-request.notification.js";
 
 type TeacherRequestPayload = {
   telegramId?: unknown;
