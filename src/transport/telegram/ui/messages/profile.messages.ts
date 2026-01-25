@@ -3,16 +3,19 @@ import type { StudentProfile } from "../../../../domain/profile/profile.service.
 export function profileMessage(p: StudentProfile) {
   const name =
     [p.firstName, p.lastName].filter(Boolean).join(" ").trim() || "—";
+
   const username = p.username ? `@${p.username}` : "—";
+  const level = p.level ?? "—";
+  const ageGroup = p.ageGroup ?? "—";
 
-  const lines = [
-    `👤 Профиль`,
-    ``,
-    `Имя: ${name}`,
-    `Username: ${username}`,
-    `Уровень: ${p.level ?? "—"}`,
-    `Возрастная группа: ${p.ageGroup ?? "—"}`,
-  ];
-
-  return lines.join("\n");
+  return [
+    "👤 Профиль",
+    "",
+    `🧑 ${name}`,
+    "",
+    `🔗 ${username}`,
+    "",
+    `📚 Уровень · ${level}`,
+    `🎯 Возраст · ${ageGroup}`,
+  ].join("\n");
 }

@@ -12,6 +12,7 @@ import { registerLessonsRoutes } from "../transport/telegram/routes/lessons.rout
 import { registerProfileRoutes } from "../transport/telegram/routes/profile.routes.js";
 
 import type { Container } from "./container.js";
+import { registerCommandsRoutes } from "../transport/telegram/routes/commands.routes.js";
 
 export function createBot(container: Container) {
   const bot = new Bot<BotContext>(env.telegramBotToken);
@@ -20,12 +21,23 @@ export function createBot(container: Container) {
   setupErrorHandler(bot);
 
   registerStartRoutes(bot, container.studentHomeService);
-
   registerRegistrationRoutes(bot, container.registrationService);
   registerInvitesRoutes(bot, container.invitesService);
 
-  registerLessonsRoutes(bot, container.lessonsService);
-  registerProfileRoutes(bot, container.profileService);
+  registerCommandsRoutes(bot, {
+    lessons: container.lessonsService,
+    profile: container.profileService,
+  });
+
+  registerLessonsRoutes(bot, {
+    lessons: container.lessonsService,
+    profile: container.profileService,
+  });
+
+  registerProfileRoutes(bot, {
+    lessons: container.lessonsService,
+    profile: container.profileService,
+  });
 
   return bot;
 }

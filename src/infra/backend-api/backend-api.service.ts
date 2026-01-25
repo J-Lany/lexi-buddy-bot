@@ -8,6 +8,11 @@ import {
   InviteNotFoundError,
 } from "./backend-api.errors.js";
 import type { BackendErrorResponse } from "./backend-api.errors.js";
+import type {
+  GetLessonAssignmentsResponse,
+  GetStudentLessonsResponse,
+  GetStudentProfileResponse,
+} from "./backend-api.types.js";
 
 export class BackendApiService {
   private readonly http: AxiosInstance;
@@ -84,27 +89,21 @@ export class BackendApiService {
     const res = await this.http.get("/internal/student/lessons", {
       params: { telegramId },
     });
-    return res.data as {
-      items: Array<{
-        lessonId: number;
-        title: string;
-        level?: string | null;
-        topic?: string | null;
-        archived?: boolean;
-      }>;
-    };
+    return res.data as GetStudentLessonsResponse;
   }
 
   async getStudentProfile(telegramId: number) {
     const res = await this.http.get("/internal/student/profile", {
       params: { telegramId },
     });
-    return res.data as {
-      firstName?: string | null;
-      lastName?: string | null;
-      username?: string | null;
-      level?: string | null;
-      ageGroup?: string | null;
-    };
+    return res.data as GetStudentProfileResponse;
+  }
+
+  async getLessonAssignments(telegramId: number, lessonId: number) {
+    const res = await this.http.get("/internal/student/lesson/assignments", {
+      params: { telegramId, lessonId },
+    });
+
+    return res.data as GetLessonAssignmentsResponse;
   }
 }

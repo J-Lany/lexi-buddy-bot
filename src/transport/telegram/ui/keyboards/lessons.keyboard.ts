@@ -1,5 +1,5 @@
 import { InlineKeyboard } from "grammy";
-import type { StudentLessonListItem } from "../../../../domain/lessons/lessons.service.js";
+import type { StudentLessonListItem } from "../../../../domain/lessons/lessons.types.js";
 
 export function lessonsListKeyboard(items: StudentLessonListItem[]) {
   const kb = new InlineKeyboard();

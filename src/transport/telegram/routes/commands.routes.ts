@@ -6,17 +6,26 @@ import type { ProfileService } from "../../../domain/profile/profile.service.js"
 
 import { navReset } from "../helpers/nav.js";
 import { renderScreen } from "../helpers/render-screen.js";
+import { beginNewScreen } from "../helpers/begin-new-screen.js";
 
-export function registerProfileRoutes(
+export function registerCommandsRoutes(
   bot: Bot<BotContext>,
   deps: { lessons: LessonsService; profile: ProfileService },
 ) {
-  bot.callbackQuery("nav:profile", async (ctx) => {
+  bot.command("lessons", async (ctx) => {
+    beginNewScreen(ctx);
+    navReset(ctx, { name: "lessons_list" });
+    await renderScreen(ctx, deps, { name: "lessons_list" });
+  });
+
+  bot.command("profile", async (ctx) => {
+    beginNewScreen(ctx);
     navReset(ctx, { name: "profile" });
     await renderScreen(ctx, deps, { name: "profile" });
   });
 
-  bot.callbackQuery("nav:help", async (ctx) => {
+  bot.command("help", async (ctx) => {
+    beginNewScreen(ctx);
     navReset(ctx, { name: "help" });
     await renderScreen(ctx, deps, { name: "help" });
   });

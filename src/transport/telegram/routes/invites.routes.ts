@@ -7,7 +7,16 @@ import {
   InviteNotFoundError,
 } from "../../../domain/invites/invites.errors.js";
 
+import { safeEditScreen } from "../helpers/safe-edit-screen.js";
+import { withLoadingScreen } from "../helpers/with-loading.js";
+
 const inFlight = new Set<string>();
+
+function successText(accepted: boolean) {
+  return accepted
+    ? "✅ Ты принял(а) запрос.\nТеперь преподаватель сможет назначать тебе задания."
+    : "Ок, запрос отклонён.";
+}
 
 export function registerInvitesRoutes(
   bot: Bot<BotContext>,
@@ -24,6 +33,7 @@ export function registerInvitesRoutes(
 
     const action = m[1];
     const inviteId = Number(m[2]);
+    const accept = action === "invite_accept";
 
     const telegramId = ctx.from?.id;
     if (!telegramId || !Number.isFinite(inviteId)) {
@@ -41,43 +51,29 @@ export function registerInvitesRoutes(
 
     inFlight.add(key);
     try {
-      await invites.respond({
-        inviteId,
-        telegramId,
-        accept: action === "invite_accept",
-      });
-
-      await ctx
-        .answerCallbackQuery({
-          text: action === "invite_accept" ? "Принято ✅" : "Отклонено",
-        })
-        .catch(() => {});
-
-      await ctx.editMessageReplyMarkup().catch(() => {});
-
-      await ctx.reply(
-        action === "invite_accept"
-          ? "✅ Ты принял(а) запрос. Теперь преподаватель сможет назначать тебе задания."
-          : "Ок, запрос отклонён.",
+      await withLoadingScreen(ctx, () =>
+        invites.respond({ inviteId, telegramId, accept }),
       );
+
+      await safeEditScreen(ctx, successText(accept), {
+        reply_markup: undefined,
+      });
     } catch (e: unknown) {
       if (e instanceof InviteAlreadyProcessedError) {
-        await ctx
-          .answerCallbackQuery({ text: "Этот запрос уже обработан ✅" })
-          .catch(() => {});
-        await ctx.editMessageReplyMarkup().catch(() => {});
+        await safeEditScreen(ctx, "✅ Этот запрос уже обработан.", {
+          reply_markup: undefined,
+        });
         return;
       }
+
       if (e instanceof InviteNotFoundError) {
-        await ctx
-          .answerCallbackQuery({ text: "Запрос не найден 😕" })
-          .catch(() => {});
-        await ctx.editMessageReplyMarkup().catch(() => {});
+        await safeEditScreen(ctx, "😕 Запрос не найден.", {
+          reply_markup: undefined,
+        });
         return;
       }
 
       const msg = e instanceof Error ? e.message : String(e);
-      await ctx.answerCallbackQuery({ text: "Ошибка 😕" }).catch(() => {});
       await ctx.reply(`⚠️ Не получилось обработать запрос.\nПричина: ${msg}`);
     } finally {
       inFlight.delete(key);
