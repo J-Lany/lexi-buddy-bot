@@ -4,13 +4,19 @@ import type { NavScreen } from "../session.js";
 function sameScreen(a: NavScreen, b: NavScreen) {
   if (a.name !== b.name) return false;
 
-  if (a.name === "lessons_list") return true;
-  if (a.name === "lesson" && b.name === "lesson")
-    return a.lessonId === b.lessonId;
-  if (a.name === "assignment" && b.name === "assignment")
-    return a.assignmentId === b.assignmentId;
+  if (a.name === "home" && b.name === "home") return true;
   if (a.name === "profile" && b.name === "profile") return true;
   if (a.name === "help" && b.name === "help") return true;
+
+  if (a.name === "lessons_list" && b.name === "lessons_list") {
+    return (a.page ?? 0) === (b.page ?? 0);
+  }
+
+  if (a.name === "lesson" && b.name === "lesson")
+    return a.lessonId === b.lessonId;
+
+  if (a.name === "assignment" && b.name === "assignment")
+    return a.assignmentId === b.assignmentId;
 
   return false;
 }

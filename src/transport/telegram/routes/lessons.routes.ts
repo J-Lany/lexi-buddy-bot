@@ -12,8 +12,19 @@ export function registerLessonsRoutes(
   deps: { lessons: LessonsService; profile: ProfileService },
 ) {
   bot.callbackQuery("nav:lessons", async (ctx) => {
-    navReset(ctx, { name: "lessons_list" });
-    await renderScreen(ctx, deps, { name: "lessons_list" });
+    navReset(ctx, { name: "home" });
+    navPush(ctx, { name: "lessons_list", page: 0 });
+    await renderScreen(ctx, deps, { name: "lessons_list", page: 0 });
+  });
+
+  bot.callbackQuery(/^lessons_page:\d+$/, async (ctx) => {
+    const m = /^lessons_page:(\d+)$/.exec(ctx.callbackQuery.data);
+    if (!m) return;
+
+    const page = Number(m[1]);
+
+    navPush(ctx, { name: "lessons_list", page });
+    await renderScreen(ctx, deps, { name: "lessons_list", page });
   });
 
   bot.callbackQuery(/^lesson_open:\d+$/, async (ctx) => {
@@ -34,6 +45,11 @@ export function registerLessonsRoutes(
     navPush(ctx, { name: "assignment", assignmentId });
 
     await renderScreen(ctx, deps, { name: "assignment", assignmentId });
+  });
+
+  bot.callbackQuery("nav:home", async (ctx) => {
+    navReset(ctx, { name: "home" });
+    await renderScreen(ctx, deps, { name: "home" });
   });
 
   bot.callbackQuery("nav:back", async (ctx) => {

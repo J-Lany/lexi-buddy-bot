@@ -20,7 +20,12 @@ export function createBot(container: Container) {
   setupSessionMiddleware(bot);
   setupErrorHandler(bot);
 
-  registerStartRoutes(bot, container.studentHomeService);
+  registerStartRoutes(bot, {
+    home: container.studentHomeService,
+    lessons: container.lessonsService,
+    profile: container.profileService,
+  });
+
   registerRegistrationRoutes(bot, container.registrationService);
   registerInvitesRoutes(bot, container.invitesService);
 
