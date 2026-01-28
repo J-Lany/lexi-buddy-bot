@@ -23,5 +23,6 @@ export async function renderHomeScreen(
 
   await safeEditScreen(ctx, withBreadcrumb(screen, body), {
     reply_markup: mainInlineKeyboard(),
+    parse_mode: "HTML",
   });
 }

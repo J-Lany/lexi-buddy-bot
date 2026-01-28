@@ -1,4 +1,5 @@
 import type { StudentProfile } from "../../../../domain/profile/profile.service.js";
+import { uiLabel, uiMessage, uiTitle } from "../helpers/ui.js";
 
 export function profileMessage(p: StudentProfile) {
   const name =
@@ -8,14 +9,13 @@ export function profileMessage(p: StudentProfile) {
   const level = p.level ?? "—";
   const ageGroup = p.ageGroup ?? "—";
 
-  return [
-    "👤 Профиль",
+  return uiMessage([
+    uiTitle("👤", "Профиль"),
     "",
-    `🧑 ${name}`,
+    uiLabel("Имя", name),
+    uiLabel("Username", username),
     "",
-    `🔗 ${username}`,
-    "",
-    `📚 Уровень · ${level}`,
-    `🎯 Возраст · ${ageGroup}`,
-  ].join("\n");
+    uiLabel("Уровень", String(level)),
+    uiLabel("Возраст", String(ageGroup)),
+  ]);
 }

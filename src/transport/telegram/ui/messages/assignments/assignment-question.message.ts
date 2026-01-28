@@ -2,6 +2,9 @@ import type {
   InternalAssignmentDto,
   InternalAssignmentQuestionDto,
 } from "../../../../../infra/backend-api/backend-api.types.js";
+import { choiceEmoji } from "../../../helpers/choice-emoji.js";
+import { escapeHtml } from "../../helpers/html.js";
+import { uiMessage } from "../../helpers/ui.js";
 
 export function assignmentQuestionMessage(params: {
   a: InternalAssignmentDto;
@@ -10,12 +13,19 @@ export function assignmentQuestionMessage(params: {
 }) {
   const { a, q, index } = params;
 
-  const lines: string[] = [];
-  lines.push(`Вопрос ${index + 1} из ${a.questions.length}`);
-  lines.push("");
-  lines.push(q.text);
+  const header = `<b>Вопрос ${index + 1}</b> <i>из ${a.questions.length}</i>`;
+  const text = escapeHtml(q.text);
 
-  return lines.join("\n");
+  const answers = q.answers?.length
+    ? [
+        "",
+        ...q.answers.map(
+          (ans, i) => `${choiceEmoji(i)} ${escapeHtml(ans.text)}`,
+        ),
+      ]
+    : [];
+
+  return uiMessage([header, "", text, ...answers]);
 }
 
 export function assignmentTextAnswerHintMessage(params: {
@@ -24,6 +34,6 @@ export function assignmentTextAnswerHintMessage(params: {
 }) {
   const { attempt, maxAttempts } = params;
 
-  if (attempt <= 1) return "✍️ Напиши ответ сообщением.";
-  return `✍️ Попробуй ещё раз (${attempt}/${maxAttempts}).`;
+  if (attempt <= 1) return "✍️ <b>Напиши ответ</b> сообщением.";
+  return `✍️ Попробуй ещё раз <i>(${attempt}/${maxAttempts})</i>.`;
 }

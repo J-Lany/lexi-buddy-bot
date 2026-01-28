@@ -2,6 +2,8 @@ import type {
   InternalAssignmentDto,
   InternalAssignmentQuestionDto,
 } from "../../../../../infra/backend-api/backend-api.types.js";
+import { escapeHtml } from "../../helpers/html.js";
+import { uiMessage } from "../../helpers/ui.js";
 
 export function assignmentReviewMessage(params: {
   a: InternalAssignmentDto;
@@ -12,20 +14,16 @@ export function assignmentReviewMessage(params: {
 }) {
   const { a, q, index, studentAnswerText, correctAnswerText } = params;
 
-  const lines: string[] = [];
-  lines.push(`Разбор • ${index + 1}/${a.questions.length}`);
-  lines.push("");
-
-  lines.push(`Вопрос: ${q.text}`);
-  lines.push("");
-  lines.push(`Твой ответ: ${studentAnswerText ?? "—"}`);
-  lines.push(`Правильный ответ: ${correctAnswerText ?? "—"}`);
-
-  if (q.explanation) {
-    lines.push("");
-    lines.push("Пояснение:");
-    lines.push(q.explanation);
-  }
-
-  return lines.join("\n");
+  return uiMessage([
+    `<b>🔎 Разбор</b> <i>${index + 1}/${a.questions.length}</i>`,
+    "",
+    `<b>Вопрос</b>\n${escapeHtml(q.text)}`,
+    "",
+    `<b>Твой ответ</b>\n${escapeHtml(studentAnswerText ?? "—")}`,
+    "",
+    `<b>Правильный ответ</b>\n${escapeHtml(correctAnswerText ?? "—")}`,
+    q.explanation?.trim()
+      ? `\n🧠 <b>Пояснение</b>\n${escapeHtml(q.explanation.trim())}`
+      : null,
+  ]);
 }

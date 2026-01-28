@@ -45,6 +45,7 @@ export async function renderAssignmentQuestionScreen(
       question: q,
       mode,
     }),
+    parse_mode: "HTML",
   });
 
   if (mode === "text") {
@@ -55,6 +56,9 @@ export async function renderAssignmentQuestionScreen(
     await sendChat(
       ctx,
       assignmentTextAnswerHintMessage({ attempt: nextAttempt, maxAttempts }),
+      {
+        parse_mode: "HTML",
+      },
     );
   }
 }

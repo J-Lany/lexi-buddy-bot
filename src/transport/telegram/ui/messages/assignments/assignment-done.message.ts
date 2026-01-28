@@ -1,17 +1,16 @@
+import { uiMessage, uiHint, uiTitle } from "../../helpers/ui.js";
+
 export function assignmentDoneMessage(score: number | null) {
-  const lines: string[] = [];
+  const result =
+    score === null
+      ? "Ответы сохранены."
+      : `Результат: <b>${Math.round(score * 100)}%</b>`;
 
-  lines.push("Готово ✅");
-  lines.push("");
-
-  if (score === null) {
-    lines.push("Ответы сохранены.");
-  } else {
-    lines.push(`Результат: ${Math.round(score * 100)}%`);
-  }
-
-  lines.push("");
-  lines.push("Хочешь — разберём ответы.");
-
-  return lines.join("\n");
+  return uiMessage([
+    uiTitle("✅", "Готово"),
+    "",
+    result,
+    "",
+    uiHint("Хочешь — разберём ответы по шагам."),
+  ]);
 }

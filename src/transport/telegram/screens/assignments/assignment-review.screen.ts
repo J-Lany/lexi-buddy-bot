@@ -44,6 +44,7 @@ export async function renderAssignmentReviewScreen(
     }),
     {
       reply_markup: assignmentReviewKeyboard(page, totalPages),
+      parse_mode: "HTML",
     },
   );
 }

@@ -32,7 +32,7 @@ export function lessonsListKeyboard(
     kb.row();
   }
 
-  kb.text("⬅️ Назад", "nav:back").text("🏠 Меню", "nav:home");
+  kb.text("🔙️ Назад", "nav:back").text("🏠 Меню", "nav:home");
 
   return kb;
 }

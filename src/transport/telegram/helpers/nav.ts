@@ -6,11 +6,11 @@ function ensureRoot(stack: NavScreen[]) {
 }
 
 export function isAssignmentScreenName(name: NavScreen["name"]): boolean {
-  return name.startsWith("assignment_");
-}
-
-export function isAssignmentScreen(screen: NavScreen): boolean {
-  return isAssignmentScreenName(screen.name);
+  return (
+    name === "assignment_question" ||
+    name === "assignment_done" ||
+    name === "assignment_review"
+  );
 }
 
 function sameScreen(a: NavScreen, b: NavScreen) {

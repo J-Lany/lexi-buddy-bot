@@ -22,5 +22,6 @@ export async function renderProfileScreen(
 
   await safeEditScreen(ctx, withBreadcrumb(screen, profileMessage(data)), {
     reply_markup: mainInlineKeyboard(),
+    parse_mode: "HTML",
   });
 }

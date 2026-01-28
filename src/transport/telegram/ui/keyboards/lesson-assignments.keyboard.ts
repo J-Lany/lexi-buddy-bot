@@ -17,7 +17,7 @@ export function lessonAssignmentsKeyboard(items: LessonAssignmentListItem[]) {
     ).row();
   }
 
-  kb.text("⬅️ Назад к урокам", "nav:back").text("🏠 Меню", "nav:home");
+  kb.text("🔙️ Назад к урокам", "nav:back").text("🏠 Меню", "nav:home");
 
   return kb;
 }

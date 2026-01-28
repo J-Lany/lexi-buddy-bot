@@ -3,6 +3,7 @@ import type { InlineKeyboardMarkup } from "grammy/types";
 
 type ScreenEditOptions = {
   reply_markup?: InlineKeyboardMarkup;
+  parse_mode?: "HTML";
 };
 
 function isIgnorableEditError(err: unknown): boolean {

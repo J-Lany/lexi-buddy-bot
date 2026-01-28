@@ -50,5 +50,6 @@ export async function renderAssignmentDoneScreen(
 
   await sendChat(ctx, assignmentDoneMessage(score), {
     reply_markup: assignmentDoneKeyboard({ canReview }),
+    parse_mode: "HTML",
   });
 }

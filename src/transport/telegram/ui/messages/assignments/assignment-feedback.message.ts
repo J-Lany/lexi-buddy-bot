@@ -1,10 +1,12 @@
+import { escapeHtml } from "../../helpers/html.js";
+import { uiMessage } from "../../helpers/ui.js";
+
 export function assignmentFeedbackMessage(params: {
   correct: boolean;
   attempt: number;
   maxAttempts: number;
   correctAnswerText: string | null;
   explanation: string | null;
-
   showCorrectAnswer: boolean;
 }) {
   const {
@@ -16,30 +18,34 @@ export function assignmentFeedbackMessage(params: {
     showCorrectAnswer,
   } = params;
 
-  const lines: string[] = [];
+  const lines: Array<string | null> = [];
 
   if (correct) {
-    lines.push("✅ Верно.");
+    lines.push("✅ <b>Верно.</b>");
   } else {
     if (attempt < maxAttempts) {
       lines.push(
-        `❌ Пока не так. Попробуй ещё раз (${attempt}/${maxAttempts}).`,
+        `❌ <b>Пока не так.</b> Попробуй ещё раз <i>(${attempt}/${maxAttempts})</i>.`,
       );
     } else {
-      lines.push(`❌ Попытки закончились (${attempt}/${maxAttempts}).`);
+      lines.push(
+        `❌ <b>Попытки закончились.</b> <i>(${attempt}/${maxAttempts})</i>.`,
+      );
     }
 
     if (showCorrectAnswer && correctAnswerText) {
       lines.push("");
-      lines.push(`Правильный ответ: ${correctAnswerText}`);
+      lines.push(
+        `✅ Правильный ответ: <b>${escapeHtml(correctAnswerText)}</b>`,
+      );
     }
   }
 
-  if (explanation) {
+  if (explanation?.trim()) {
     lines.push("");
-    lines.push("Пояснение:");
-    lines.push(explanation);
+    lines.push(`🧠 <b>Пояснение</b>`);
+    lines.push(escapeHtml(explanation.trim()));
   }
 
-  return lines.join("\n");
+  return uiMessage(lines);
 }

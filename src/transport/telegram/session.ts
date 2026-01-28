@@ -70,6 +70,10 @@ export type SessionData = {
   ui: {
     screenMessageId?: number;
     bannerText?: string | null;
+    lessonsById?: Record<
+      number,
+      { title: string; topic: string | null; level: string | null }
+    >;
   };
 
   assignmentRun?: AssignmentRunState | null;

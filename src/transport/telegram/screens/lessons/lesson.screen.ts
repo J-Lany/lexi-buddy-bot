@@ -19,13 +19,41 @@ export async function renderLessonScreen(
   const telegramId = ctx.from?.id;
   if (!telegramId) return;
 
+  let meta = ctx.session.ui.lessonsById?.[screen.lessonId];
+
+  if (!meta) {
+    const lessons = await deps.lessons.listForStudent(telegramId);
+
+    ctx.session.ui.lessonsById = lessons.reduce<
+      NonNullable<BotContext["session"]["ui"]["lessonsById"]>
+    >((acc, l) => {
+      acc[l.lessonId] = {
+        title: l.title,
+        topic: l.topic ?? null,
+        level: l.level ?? null,
+      };
+      return acc;
+    }, {});
+
+    meta = ctx.session.ui.lessonsById?.[screen.lessonId];
+  }
+
   const items = await withLoadingScreen(ctx, () =>
     deps.lessons.listAssignmentsForStudent(telegramId, screen.lessonId),
   );
 
   await safeEditScreen(
     ctx,
-    withBreadcrumb(screen, lessonMessage({ lessonId: screen.lessonId, items })),
-    { reply_markup: lessonAssignmentsKeyboard(items) },
+    withBreadcrumb(
+      screen,
+      lessonMessage({
+        lessonId: screen.lessonId,
+        lessonTitle: meta?.title ?? null,
+        topic: meta?.topic ?? null,
+        level: meta?.level ?? null,
+        items,
+      }),
+    ),
+    { reply_markup: lessonAssignmentsKeyboard(items), parse_mode: "HTML" },
   );
 }

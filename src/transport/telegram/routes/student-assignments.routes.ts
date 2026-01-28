@@ -80,18 +80,13 @@ export function registerStudentAssignmentsRoutes(
     await advanceOrSubmit(ctx);
   });
 
-  bot.on("message:text", async (ctx) => {
-    const run = ctx.session.assignmentRun;
-    if (!run || run.submitted || run.startInFlight) {
-      await sendChat(
-        ctx,
-        "Я сейчас не жду ответ на задание 🙂\nВыбери действие в меню.",
-      );
-      return;
-    }
-
+  bot.on("message:text", async (ctx, next) => {
     const current = navPeek(ctx);
-    if (!current || current.name !== "assignment_question") return;
+    if (!current || current.name !== "assignment_question") return next();
+
+    const run = ctx.session.assignmentRun;
+    if (!run || run.submitted || run.startInFlight || run.submitInFlight)
+      return;
 
     const ok = await flow.answerText(ctx, ctx.message.text);
     if (!ok) return;

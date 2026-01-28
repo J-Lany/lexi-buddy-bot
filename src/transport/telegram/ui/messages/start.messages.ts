@@ -1,27 +1,32 @@
+import { uiHint, uiMessage, uiTitle } from "../helpers/ui.js";
+import { escapeHtml } from "../helpers/html.js";
+
 export function startNeedRegMessage(firstName: string) {
-  return [
-    `Привет, ${firstName}! 👋`,
+  return uiMessage([
+    uiTitle("👋", `Привет, ${escapeHtml(firstName)}!`),
     "",
     "Я помогу получать задания от преподавателя прямо в этом чате.",
     "",
-    "Нажми кнопку ниже, чтобы подключиться.",
-  ].join("\n");
+    uiHint("Нажми «Присоединиться», чтобы подключиться."),
+  ]);
 }
 
 export function startRegisteredNoTeacherMessage() {
-  return [
-    "Ты уже подключён(а) ✅",
+  return uiMessage([
+    uiTitle("✅", "Ты уже подключён(а)"),
     "",
     "Пока нет активной группы с преподавателем — поэтому уроки ещё не появились.",
     "",
-    "Попроси у преподавателя приглашение, и всё появится автоматически 🙂",
-  ].join("\n");
+    uiHint(
+      "Попроси у преподавателя приглашение — и всё появится автоматически 🙂",
+    ),
+  ]);
 }
 
 export function startActiveStudentMessage(firstName: string) {
-  return [
-    `Привет, ${firstName}! ✅`,
+  return uiMessage([
+    uiTitle("✅", `Привет, ${escapeHtml(firstName)}!`),
     "",
     "Готово. Уроки и задания доступны в меню.",
-  ].join("\n");
+  ]);
 }

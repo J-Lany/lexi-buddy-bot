@@ -1,8 +1,11 @@
 import { InlineKeyboard } from "grammy";
 import type { InternalAssignmentQuestionDto } from "../../../../infra/backend-api/backend-api.types.js";
+import { choiceEmoji } from "../../helpers/choice-emoji.js";
 
 export function assignmentIntroKeyboard() {
-  return new InlineKeyboard().text("🚀 Начать", "assignment_begin");
+  return new InlineKeyboard()
+    .text("🔙️ Назад", "nav:back")
+    .text("🚀 Начать", "assignment_begin");
 }
 
 export function assignmentQuestionKeyboard(params: {
@@ -15,11 +18,12 @@ export function assignmentQuestionKeyboard(params: {
   const kb = new InlineKeyboard();
 
   if (mode === "choice") {
-    for (const a of question.answers) {
+    for (let i = 0; i < question.answers.length; i++) {
+      const a = question.answers[i]!;
       kb.text(
-        a.text,
+        choiceEmoji(i),
         `assignment_choose:${sessionId}:${question.id}:${a.id}`,
-      ).row();
+      );
     }
   }
 

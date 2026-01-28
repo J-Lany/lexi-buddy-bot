@@ -1,6 +1,8 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
 import { teacherRequestKeyboard } from "../ui/keyboards/teacher-request.keyboard.js";
+import { uiHint, uiMessage, uiTitle } from "../ui/helpers/ui.js";
+import { escapeHtml } from "../ui/helpers/html.js";
 
 export type TeacherRequestNotification = {
   telegramId: number;
@@ -17,16 +19,23 @@ export class TeacherRequestNotificationSender {
 
     const teacherLabel =
       payload.teacherName && payload.teacherName.trim()
-        ? payload.teacherName
+        ? payload.teacherName.trim()
         : "Преподаватель";
 
-    const text =
-      `👩‍🏫 ${teacherLabel} хочет добавить тебя как студента.` +
-      (payload.message ? `\n\n💬 ${payload.message}` : "") +
-      `\n\nПринять запрос?`;
+    const text = uiMessage([
+      uiTitle("👩‍🏫", "Запрос от преподавателя"),
+      "",
+      `<b>${escapeHtml(teacherLabel)}</b> хочет добавить тебя как студента.`,
+      payload.message?.trim()
+        ? `\n💬 ${escapeHtml(payload.message.trim())}`
+        : null,
+      "",
+      uiHint("Выбери действие кнопками ниже."),
+    ]);
 
     await this.bot.api.sendMessage(chatId, text, {
       reply_markup: teacherRequestKeyboard(payload.inviteId),
+      parse_mode: "HTML",
     });
   }
 }

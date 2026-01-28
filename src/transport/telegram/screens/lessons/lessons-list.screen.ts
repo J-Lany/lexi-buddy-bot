@@ -26,11 +26,25 @@ export async function renderLessonsListScreen(
     deps.lessons.listForStudent(telegramId),
   );
 
+  ctx.session.ui.lessonsById = items.reduce<
+    NonNullable<BotContext["session"]["ui"]["lessonsById"]>
+  >((acc, l) => {
+    acc[l.lessonId] = {
+      title: l.title,
+      topic: l.topic ?? null,
+      level: l.level ?? null,
+    };
+    return acc;
+  }, {});
+
   const { page, pages } = lessonsPaging(items.length, screen.page ?? 0);
 
   await safeEditScreen(
     ctx,
     withBreadcrumb(screen, lessonsListMessage({ items, page, pages })),
-    { reply_markup: lessonsListKeyboard(items, page) },
+    {
+      reply_markup: lessonsListKeyboard(items, page),
+      parse_mode: "HTML",
+    },
   );
 }
