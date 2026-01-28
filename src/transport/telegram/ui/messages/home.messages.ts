@@ -1,5 +1,7 @@
 export function homeMessage(firstName?: string | null) {
-  const name = firstName?.trim() || "🙂";
+  const name = firstName?.trim();
 
-  return [`Привет, ${name}! ✅`, "", "Выбирай, что хочешь открыть:"].join("\n");
+  const greeting = name ? `Привет, ${name} 👋` : "Привет 👋";
+
+  return [greeting, "", "Что хочешь сделать?"].join("\n");
 }

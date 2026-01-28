@@ -4,6 +4,7 @@ import { InvitesService } from "../domain/invites/invites.service.js";
 import { StudentHomeService } from "../domain/student-home/student-home.service.js";
 import { LessonsService } from "../domain/lessons/lessons.service.js";
 import { ProfileService } from "../domain/profile/profile.service.js";
+import { StudentAssignmentsService } from "../domain/student-assignments/student-assignments.service.js";
 
 export function createContainer() {
   const backendApi = new BackendApiService();
@@ -12,7 +13,12 @@ export function createContainer() {
   const invitesService = new InvitesService(backendApi);
   const lessonsService = new LessonsService(backendApi);
   const profileService = new ProfileService(backendApi);
-  const studentHomeService = new StudentHomeService(registrationService);
+  const studentHomeService = new StudentHomeService(
+    registrationService,
+    profileService,
+  );
+
+  const studentAssignmentsService = new StudentAssignmentsService(backendApi);
 
   return {
     backendApi,
@@ -21,6 +27,7 @@ export function createContainer() {
     studentHomeService,
     lessonsService,
     profileService,
+    studentAssignmentsService,
   };
 }
 

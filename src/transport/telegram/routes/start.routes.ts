@@ -1,27 +1,21 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
-
 import type { StudentHomeService } from "../../../domain/student-home/student-home.service.js";
-import type { LessonsService } from "../../../domain/lessons/lessons.service.js";
-import type { ProfileService } from "../../../domain/profile/profile.service.js";
-
 import { startRegistrationKeyboard } from "../ui/keyboards/registration.keyboard.js";
 import {
+  startActiveStudentMessage,
   startNeedRegMessage,
   startRegisteredNoTeacherMessage,
 } from "../ui/messages/start.messages.js";
-
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
 import { safeEditScreen } from "../helpers/safe-edit-screen.js";
-import { navReset } from "../helpers/nav.js";
-import { renderScreen } from "../helpers/render-screen.js";
+import type { RoutesDeps } from "./routes.deps.js";
+import { goTo } from "../helpers/go-to.js";
 
 export function registerStartRoutes(
   bot: Bot<BotContext>,
-  deps: {
+  deps: RoutesDeps & {
     home: StudentHomeService;
-    lessons: LessonsService;
-    profile: ProfileService;
   },
 ) {
   bot.command("start", async (ctx) => {
@@ -29,10 +23,6 @@ export function registerStartRoutes(
     if (!from) return;
 
     beginNewScreen(ctx);
-
-    await ctx
-      .reply("✅", { reply_markup: { remove_keyboard: true } })
-      .catch(() => {});
 
     const profile = {
       telegramId: from.id,
@@ -55,24 +45,22 @@ export function registerStartRoutes(
     }
 
     if (view.type === "REGISTERED_NO_TEACHER") {
-      navReset(ctx, { name: "home" });
-      await safeEditScreen(ctx, startRegisteredNoTeacherMessage(), {
-        reply_markup: undefined,
-      });
-
-      await renderScreen(
+      ctx.session.ui.bannerText = startRegisteredNoTeacherMessage();
+      await goTo(
         ctx,
-        { lessons: deps.lessons, profile: deps.profile },
+        deps,
         { name: "home" },
+        { navMode: "reset", clearAssignmentRun: "always" },
       );
       return;
     }
 
-    navReset(ctx, { name: "home" });
-    await renderScreen(
+    ctx.session.ui.bannerText = startActiveStudentMessage(profile.firstName);
+    await goTo(
       ctx,
-      { lessons: deps.lessons, profile: deps.profile },
+      deps,
       { name: "home" },
+      { navMode: "reset", clearAssignmentRun: "always" },
     );
   });
 }

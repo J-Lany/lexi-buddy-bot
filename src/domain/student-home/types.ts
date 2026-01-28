@@ -1,8 +1,7 @@
 export type StartView =
   | { type: "NEED_REG" }
   | { type: "REGISTERED_NO_TEACHER" }
-  | { type: "ACTIVE_STUDENT" }
-  | { type: "HAS_INVITES"; invitesCount: number };
+  | { type: "ACTIVE_STUDENT" };
 
 export type TelegramProfile = {
   telegramId: number;

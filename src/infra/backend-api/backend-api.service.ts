@@ -12,6 +12,10 @@ import type {
   GetLessonAssignmentsResponse,
   GetStudentLessonsResponse,
   GetStudentProfileResponse,
+  InternalAssignmentPreviewResponseDto,
+  InternalStartAssignmentResponseDto,
+  SubmitAssignmentRequestDto,
+  SubmitAssignmentResponseDto,
 } from "./backend-api.types.js";
 
 export class BackendApiService {
@@ -36,7 +40,6 @@ export class BackendApiService {
       });
       return res.data;
     } catch (e: unknown) {
-      console.log(e);
       const err = e as AxiosError;
       if (err.response?.status === 404) return null;
       throw err;
@@ -105,5 +108,31 @@ export class BackendApiService {
     });
 
     return res.data as GetLessonAssignmentsResponse;
+  }
+
+  async getAssignmentPreview(telegramId: number, assignmentId: number) {
+    const res = await this.http.get("/internal/student/assignment/preview", {
+      params: { telegramId, assignmentId },
+    });
+
+    return res.data as InternalAssignmentPreviewResponseDto;
+  }
+
+  async startAssignmentAttempt(telegramId: number, assignmentId: number) {
+    const res = await this.http.post(
+      "/internal/student/assignment/start",
+      null,
+      { params: { telegramId, assignmentId } },
+    );
+
+    return res.data as InternalStartAssignmentResponseDto;
+  }
+
+  async submitAssignmentAttempt(body: SubmitAssignmentRequestDto) {
+    const res = await this.http.post(
+      "/internal/student/assignment/submit",
+      body,
+    );
+    return res.data as SubmitAssignmentResponseDto;
   }
 }

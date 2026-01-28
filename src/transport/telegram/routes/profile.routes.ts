@@ -1,25 +1,17 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
+import type { RoutesDeps } from "./routes.deps.js";
+import { ack } from "../helpers/ack.js";
+import { goTo } from "../helpers/go-to.js";
 
-import type { LessonsService } from "../../../domain/lessons/lessons.service.js";
-import type { ProfileService } from "../../../domain/profile/profile.service.js";
-
-import { navReset, navPush } from "../helpers/nav.js";
-import { renderScreen } from "../helpers/render-screen.js";
-
-export function registerProfileRoutes(
-  bot: Bot<BotContext>,
-  deps: { lessons: LessonsService; profile: ProfileService },
-) {
+export function registerProfileRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
   bot.callbackQuery("nav:profile", async (ctx) => {
-    navReset(ctx, { name: "home" });
-    navPush(ctx, { name: "profile" });
-    await renderScreen(ctx, deps, { name: "profile" });
+    await ack(ctx);
+    await goTo(ctx, deps, { name: "profile" }, { navMode: "reset" });
   });
 
   bot.callbackQuery("nav:help", async (ctx) => {
-    navReset(ctx, { name: "home" });
-    navPush(ctx, { name: "help" });
-    await renderScreen(ctx, deps, { name: "help" });
+    await ack(ctx);
+    await goTo(ctx, deps, { name: "help" }, { navMode: "reset" });
   });
 }

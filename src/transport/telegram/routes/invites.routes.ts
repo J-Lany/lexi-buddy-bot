@@ -9,6 +9,7 @@ import {
 
 import { safeEditScreen } from "../helpers/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
+import { ack } from "../helpers/ack.js";
 
 const inFlight = new Set<string>();
 
@@ -27,7 +28,7 @@ export function registerInvitesRoutes(
       ctx.callbackQuery.data,
     );
     if (!m) {
-      await ctx.answerCallbackQuery().catch(() => {});
+      await ack(ctx);
       return;
     }
 
@@ -37,9 +38,7 @@ export function registerInvitesRoutes(
 
     const telegramId = ctx.from?.id;
     if (!telegramId || !Number.isFinite(inviteId)) {
-      await ctx
-        .answerCallbackQuery({ text: "Не удалось определить пользователя" })
-        .catch(() => {});
+      await ack(ctx, "Не удалось определить пользователя");
       return;
     }
 

@@ -1,4 +1,5 @@
 import type { TeacherRequestNotification } from "../telegram/notifications/teacher-request.notification.js";
+import { parseNumberLike } from "./utils/number-like.js";
 
 type TeacherRequestPayload = {
   telegramId?: unknown;
@@ -16,25 +17,12 @@ export function parseTeacherRequestPayload(
 
   const b = body as TeacherRequestPayload;
 
-  const rawTelegramId = b.telegramId;
-  const chatId =
-    typeof rawTelegramId === "number"
-      ? rawTelegramId
-      : typeof rawTelegramId === "string"
-        ? Number(rawTelegramId)
-        : NaN;
-
-  if (!Number.isFinite(chatId)) {
-    throw new Error("telegramId must be a number or numeric string");
-  }
-
-  if (typeof b.inviteId !== "number" || !Number.isFinite(b.inviteId)) {
-    throw new Error("inviteId must be a number");
-  }
+  const chatId = parseNumberLike(b.telegramId, "telegramId");
+  const inviteId = parseNumberLike(b.inviteId, "inviteId");
 
   const result: TeacherRequestNotification = {
     telegramId: chatId,
-    inviteId: b.inviteId,
+    inviteId: inviteId,
   };
 
   if (b.teacherName != null) {

@@ -27,12 +27,21 @@ export function breadcrumb(screen: NavScreen): string {
       { icon: "📘", title: `Урок #${screen.lessonId}` },
     ]);
 
-  if (screen.name === "assignment")
+  if (screen.name === "assignment_intro")
     return joinCrumbs([
       home,
       { icon: "📖", title: "Уроки" },
       { icon: "📝", title: `Задание #${screen.assignmentId}` },
     ]);
+
+  if (screen.name === "assignment_question")
+    return joinCrumbs([home, { icon: "📝", title: "Задание" }]);
+
+  if (screen.name === "assignment_done")
+    return joinCrumbs([home, { icon: "📝", title: "Задание" }]);
+
+  if (screen.name === "assignment_review")
+    return joinCrumbs([home, { icon: "📝", title: "Разбор" }]);
 
   if (screen.name === "profile")
     return joinCrumbs([home, { icon: "👤", title: "Профиль" }]);

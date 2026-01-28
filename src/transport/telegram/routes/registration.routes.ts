@@ -6,6 +6,7 @@ import type { RegistrationService } from "../../../domain/registration/registrat
 import { safeEditScreen } from "../helpers/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
+import { ack } from "../helpers/ack.js";
 
 export function registerRegistrationRoutes(
   bot: Bot<BotContext>,
@@ -39,7 +40,7 @@ export function registerRegistrationRoutes(
   bot.callbackQuery("reg_begin", async (ctx) => {
     const reg = ctx.session.reg;
     if (!reg) {
-      await ctx.answerCallbackQuery().catch(() => {});
+      await ack(ctx);
       return;
     }
 
