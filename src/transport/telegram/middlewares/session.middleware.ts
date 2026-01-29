@@ -6,7 +6,12 @@ import type { SessionData } from "../session.js";
 export function setupSessionMiddleware(bot: Bot<BotContext>) {
   bot.use(
     session<SessionData, BotContext>({
-      initial: (): SessionData => ({}),
+      initial: (): SessionData => ({
+        nav: { stack: [{ name: "home" }] },
+        ui: {},
+        assignmentRun: null,
+        assignmentSubmitError: null,
+      }),
     }),
   );
 }

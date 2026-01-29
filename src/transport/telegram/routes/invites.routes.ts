@@ -7,7 +7,16 @@ import {
   InviteNotFoundError,
 } from "../../../domain/invites/invites.errors.js";
 
+import { safeEditScreen } from "../helpers/safe-edit-screen.js";
+import { withLoadingScreen } from "../helpers/with-loading.js";
+import { ack } from "../helpers/ack.js";
+import { copy } from "../ui/helpers/copy.js";
+
 const inFlight = new Set<string>();
+
+function successText(accepted: boolean) {
+  return accepted ? copy.ui.invites.accepted : copy.ui.invites.declined;
+}
 
 export function registerInvitesRoutes(
   bot: Bot<BotContext>,
@@ -18,67 +27,54 @@ export function registerInvitesRoutes(
       ctx.callbackQuery.data,
     );
     if (!m) {
-      await ctx.answerCallbackQuery().catch(() => {});
+      await ack(ctx);
       return;
     }
 
     const action = m[1];
     const inviteId = Number(m[2]);
+    const accept = action === "invite_accept";
 
     const telegramId = ctx.from?.id;
     if (!telegramId || !Number.isFinite(inviteId)) {
-      await ctx
-        .answerCallbackQuery({ text: "Не удалось определить пользователя" })
-        .catch(() => {});
+      await ack(ctx, copy.ui.invites.errors.cannotIdentifyUser);
       return;
     }
 
     const key = `${telegramId}:${inviteId}`;
     if (inFlight.has(key)) {
-      await ctx.answerCallbackQuery({ text: "Минутку…" }).catch(() => {});
+      await ctx
+        .answerCallbackQuery({ text: copy.ui.invites.inFlight })
+        .catch(() => {});
       return;
     }
 
     inFlight.add(key);
     try {
-      await invites.respond({
-        inviteId,
-        telegramId,
-        accept: action === "invite_accept",
-      });
-
-      await ctx
-        .answerCallbackQuery({
-          text: action === "invite_accept" ? "Принято ✅" : "Отклонено",
-        })
-        .catch(() => {});
-
-      await ctx.editMessageReplyMarkup().catch(() => {});
-
-      await ctx.reply(
-        action === "invite_accept"
-          ? "✅ Ты принял(а) запрос. Теперь преподаватель сможет назначать тебе задания."
-          : "Ок, запрос отклонён.",
+      await withLoadingScreen(ctx, () =>
+        invites.respond({ inviteId, telegramId, accept }),
       );
+
+      await safeEditScreen(ctx, successText(accept));
     } catch (e: unknown) {
       if (e instanceof InviteAlreadyProcessedError) {
-        await ctx
-          .answerCallbackQuery({ text: "Этот запрос уже обработан ✅" })
-          .catch(() => {});
-        await ctx.editMessageReplyMarkup().catch(() => {});
+        await safeEditScreen(
+          ctx,
+          `✅ ${copy.ui.invites.errors.alreadyProcessed}`,
+        );
         return;
       }
+
       if (e instanceof InviteNotFoundError) {
-        await ctx
-          .answerCallbackQuery({ text: "Запрос не найден 😕" })
-          .catch(() => {});
-        await ctx.editMessageReplyMarkup().catch(() => {});
+        await safeEditScreen(ctx, `😕 ${copy.ui.invites.errors.notFound}`);
         return;
       }
 
       const msg = e instanceof Error ? e.message : String(e);
-      await ctx.answerCallbackQuery({ text: "Ошибка 😕" }).catch(() => {});
-      await ctx.reply(`⚠️ Не получилось обработать запрос.\nПричина: ${msg}`);
+      await ctx.reply(
+        `${copy.ui.invites.errors.processFailed}\n${copy.ui.invites.errors.reasonPrefix} ${msg}`,
+        { parse_mode: "HTML" },
+      );
     } finally {
       inFlight.delete(key);
     }

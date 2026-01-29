@@ -3,56 +3,62 @@ import type { BotContext } from "../context.js";
 
 import type { RegistrationService } from "../../../domain/registration/registration.service.js";
 
+import { safeEditScreen } from "../helpers/safe-edit-screen.js";
+import { withLoadingScreen } from "../helpers/with-loading.js";
+import { beginNewScreen } from "../helpers/begin-new-screen.js";
+import { ack } from "../helpers/ack.js";
+import { copy } from "../ui/helpers/copy.js";
+
 export function registerRegistrationRoutes(
   bot: Bot<BotContext>,
   regService: RegistrationService,
 ) {
   bot.command("cancel", async (ctx) => {
+    beginNewScreen(ctx);
+
     delete ctx.session.reg;
-    await ctx.reply("Ок, отменили. Напиши /start если захочешь снова 🙂");
+    await safeEditScreen(ctx, copy.ui.registration.cancelOk);
   });
 
   bot.on("message:text", async (ctx, next) => {
     if (!ctx.session.reg) return next();
 
-    await ctx.reply(
-      "Ты в процессе подключения 🙂\n" +
-        "Пожалуйста, нажми кнопку ниже или /cancel — чтобы отменить.",
-    );
+    beginNewScreen(ctx);
+
+    await safeEditScreen(ctx, copy.ui.registration.inProgress);
   });
 
   bot.callbackQuery("reg_begin", async (ctx) => {
     const reg = ctx.session.reg;
     if (!reg) {
-      await ctx.answerCallbackQuery().catch(() => {});
+      await ack(ctx);
       return;
     }
 
     try {
-      await regService.register(reg.draft);
+      await withLoadingScreen(ctx, () => regService.register(reg.draft));
       delete ctx.session.reg;
 
-      await ctx.answerCallbackQuery().catch(() => {});
-      await ctx.editMessageReplyMarkup().catch(() => {});
-
-      await ctx.reply(
-        "✅ Готово!\n\n" +
-          "Теперь преподаватель сможет найти тебя и назначить уроки 🙂",
-      );
+      await safeEditScreen(ctx, copy.ui.registration.success);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
+
+      await safeEditScreen(ctx, copy.ui.registration.failed);
+
       await ctx.reply(
-        `⚠️ Не получилось подключиться.\n` +
-          `Причина: ${msg}\n\n` +
-          `/start — попробовать снова`,
+        `${copy.ui.registration.reasonPrefix} ${msg}\n\n${copy.ui.registration.tryAgain}`,
+        { parse_mode: "HTML" },
       );
     }
   });
 
   bot.callbackQuery("reg_cancel", async (ctx) => {
     delete ctx.session.reg;
-    await ctx.answerCallbackQuery().catch(() => {});
-    await ctx.editMessageReplyMarkup().catch(() => {});
-    await ctx.reply("Ок 🙂 Если передумаешь — напиши /start");
+
+    await ctx
+      .answerCallbackQuery({ text: copy.ui.registration.callbackOk })
+      .catch(() => {});
+
+    await safeEditScreen(ctx, copy.ui.registration.cancelShort);
   });
 }

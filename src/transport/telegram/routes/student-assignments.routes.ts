@@ -1,0 +1,165 @@
+import type { Bot } from "grammy";
+import type { BotContext } from "../context.js";
+import type { RoutesDeps } from "./routes.deps.js";
+
+import { navPeek, navPush, navReplaceTop } from "../helpers/nav.js";
+import { renderScreen } from "../helpers/render-screen.js";
+import { sendChat } from "../helpers/send-chat.js";
+import { ack } from "../helpers/ack.js";
+import { goTo } from "../helpers/go-to.js";
+import { beginNewScreen } from "../helpers/begin-new-screen.js";
+
+import { AssignmentRunFlow } from "../../../application/assignment-run/assignment-run.flow.js";
+
+export function registerStudentAssignmentsRoutes(
+  bot: Bot<BotContext>,
+  deps: RoutesDeps,
+) {
+  const flow = new AssignmentRunFlow();
+
+  async function advanceOrSubmit(ctx: BotContext) {
+    const run = ctx.session.assignmentRun;
+    if (!run) return;
+
+    if (await flow.maybeAutoSubmitAndNavigate(ctx, deps)) {
+      navReplaceTop(ctx, { name: "assignment_done" });
+      await renderScreen(ctx, deps, { name: "assignment_done" });
+      return;
+    }
+
+    const currentQ = run.assignment.questions[run.index];
+    if (!currentQ) return;
+
+    const advanced = flow.next(ctx, {
+      sessionId: run.clientSessionId,
+      questionId: currentQ.id,
+    });
+
+    if (!advanced) return;
+
+    navReplaceTop(ctx, { name: "assignment_question" });
+    await renderScreen(ctx, deps, { name: "assignment_question" });
+  }
+
+  bot.callbackQuery("assignment_begin", async (ctx) => {
+    await ack(ctx);
+
+    const telegramId = ctx.from?.id;
+    if (!telegramId) return;
+
+    const current = navPeek(ctx);
+    if (!current || current.name !== "assignment_intro") return;
+
+    await flow.begin(ctx, deps, current.assignmentId);
+
+    navReplaceTop(ctx, { name: "assignment_question" });
+    await renderScreen(ctx, deps, { name: "assignment_question" });
+  });
+
+  bot.callbackQuery(/^assignment_choose:.+$/, async (ctx) => {
+    await ack(ctx);
+
+    const data = ctx.callbackQuery.data;
+    const m = /^assignment_choose:([^:]+):(\d+):(\d+)$/.exec(data);
+    if (!m) return;
+
+    const sessionId = m[1];
+    const questionId = Number(m[2]);
+    const answerId = Number(m[3]);
+
+    const ok = await flow.answerChoice(ctx, {
+      questionId,
+      answerId,
+      ...(sessionId ? { sessionId } : {}),
+    });
+
+    if (!ok) return;
+
+    const fb = flow.takeFeedback(ctx);
+    if (fb) await sendChat(ctx, fb.text);
+
+    await advanceOrSubmit(ctx);
+  });
+
+  bot.on("message:text", async (ctx, next) => {
+    const current = navPeek(ctx);
+    if (!current || current.name !== "assignment_question") return next();
+
+    const run = ctx.session.assignmentRun;
+    if (!run || run.submitted || run.startInFlight || run.submitInFlight)
+      return;
+
+    const ok = await flow.answerText(ctx, ctx.message.text);
+    if (!ok) return;
+
+    const fb = flow.takeFeedback(ctx);
+    if (fb) await sendChat(ctx, fb.text);
+
+    if (fb?.canGoNext) {
+      await advanceOrSubmit(ctx);
+    }
+  });
+
+  bot.callbackQuery("assignment_submit_retry", async (ctx) => {
+    await ack(ctx);
+
+    await flow.submit(ctx, deps);
+
+    navReplaceTop(ctx, { name: "assignment_done" });
+    await renderScreen(ctx, deps, { name: "assignment_done" });
+  });
+
+  bot.callbackQuery("assignment_review", async (ctx) => {
+    await ack(ctx);
+
+    const run = ctx.session.assignmentRun;
+    if (!run || !run.submitted) return;
+
+    navPush(ctx, { name: "assignment_review", page: 0 });
+    await renderScreen(ctx, deps, { name: "assignment_review", page: 0 });
+  });
+
+  bot.callbackQuery(/^assignment_review_page:\d+$/, async (ctx) => {
+    await ack(ctx);
+
+    const run = ctx.session.assignmentRun;
+    if (!run || !run.submitted) return;
+
+    const m = /^assignment_review_page:(\d+)$/.exec(ctx.callbackQuery.data);
+    if (!m) return;
+
+    const page = Number(m[1]);
+
+    navReplaceTop(ctx, { name: "assignment_review", page });
+    await renderScreen(ctx, deps, { name: "assignment_review", page });
+  });
+
+  bot.callbackQuery("assignment_to_lesson", async (ctx) => {
+    await ack(ctx);
+
+    const lessonId = flow.finishToLesson(ctx);
+    if (lessonId === null) return;
+
+    beginNewScreen(ctx);
+    await goTo(
+      ctx,
+      deps,
+      { name: "lesson", lessonId },
+      { navMode: "reset", clearAssignmentRun: "always" },
+    );
+  });
+
+  bot.callbackQuery("assignment_finish", async (ctx) => {
+    await ack(ctx);
+
+    flow.finish(ctx);
+
+    beginNewScreen(ctx);
+    await goTo(
+      ctx,
+      deps,
+      { name: "home" },
+      { navMode: "reset", clearAssignmentRun: "always" },
+    );
+  });
+}

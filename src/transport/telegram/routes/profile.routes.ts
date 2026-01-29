@@ -1,19 +1,17 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
+import type { RoutesDeps } from "./routes.deps.js";
+import { ack } from "../helpers/ack.js";
+import { goTo } from "../helpers/go-to.js";
 
-import type { ProfileService } from "../../../domain/profile/profile.service.js";
-import { profileMessage } from "../ui/messages/profile.messages.js";
-import { mainMenuKeyboard } from "../ui/keyboards/main.keyboard.js";
+export function registerProfileRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
+  bot.callbackQuery("nav:profile", async (ctx) => {
+    await ack(ctx);
+    await goTo(ctx, deps, { name: "profile" }, { navMode: "reset" });
+  });
 
-export function registerProfileRoutes(
-  bot: Bot<BotContext>,
-  profile: ProfileService,
-) {
-  bot.hears("👤 Профиль", async (ctx) => {
-    const telegramId = ctx.from?.id;
-    if (!telegramId) return;
-
-    const data = await profile.get(telegramId);
-    await ctx.reply(profileMessage(data), { reply_markup: mainMenuKeyboard() });
+  bot.callbackQuery("nav:help", async (ctx) => {
+    await ack(ctx);
+    await goTo(ctx, deps, { name: "help" }, { navMode: "reset" });
   });
 }

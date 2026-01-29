@@ -1,11 +1,8 @@
 import type { BackendApiService } from "../../infra/backend-api/backend-api.service.js";
-
-export type StudentLessonListItem = {
-  lessonId: number;
-  title: string;
-  level?: string | null;
-  topic?: string | null;
-};
+import type {
+  LessonAssignmentListItem,
+  StudentLessonListItem,
+} from "./lessons.types.js";
 
 export class LessonsService {
   constructor(private readonly backend: BackendApiService) {}
@@ -18,5 +15,13 @@ export class LessonsService {
       level: x.level ?? null,
       topic: x.topic ?? null,
     }));
+  }
+
+  async listAssignmentsForStudent(
+    telegramId: number,
+    lessonId: number,
+  ): Promise<LessonAssignmentListItem[]> {
+    const res = await this.backend.getLessonAssignments(telegramId, lessonId);
+    return res.items ?? [];
   }
 }
