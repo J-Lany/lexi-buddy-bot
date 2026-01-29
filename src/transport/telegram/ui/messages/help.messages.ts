@@ -1,23 +1,13 @@
-import {
-  uiList,
-  uiMessage,
-  uiSection,
-  uiTitle,
-  uiHint,
-} from "../helpers/ui.js";
+import { uiMessage } from "../helpers/ui.js";
+import { copy } from "../helpers/copy.js";
 
 export function helpMessage() {
   return uiMessage([
-    uiTitle("❓", "Помощь"),
+    copy.ui.common.title("❓", copy.ui.help.title),
     "",
-    uiSection("Команды"),
-    uiList([
-      "/start — главное меню",
-      "/lessons — мои уроки",
-      "/profile — профиль",
-      "/help — помощь",
-    ]),
+    copy.ui.common.section(copy.ui.help.section),
+    copy.ui.common.list(copy.ui.help.commands),
     "",
-    uiHint("Кнопка Menu рядом с полем ввода — самый быстрый путь 🙂"),
+    copy.ui.common.hint(copy.ui.help.hint),
   ]);
 }

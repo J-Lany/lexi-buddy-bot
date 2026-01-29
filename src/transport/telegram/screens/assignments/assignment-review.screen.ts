@@ -6,6 +6,7 @@ import { sendChat } from "../../helpers/send-chat.js";
 import { assignmentReviewKeyboard } from "../../ui/keyboards/assignment.keyboard.js";
 import { assignmentReviewMessage } from "../../ui/messages/assignments/assignment-review.message.js";
 import { getStudentAnswerText } from "../../../../domain/assignment-run/student-answer.js";
+import { copy } from "../../ui/helpers/copy.js";
 
 export async function renderAssignmentReviewScreen(
   ctx: BotContext,
@@ -16,7 +17,7 @@ export async function renderAssignmentReviewScreen(
 
   const run = ctx.session.assignmentRun;
   if (!run || !run.submitted) {
-    await sendChat(ctx, "Разбор доступен после отправки ответов.");
+    await sendChat(ctx, copy.ui.assignment.review.unavailable);
     return;
   }
 

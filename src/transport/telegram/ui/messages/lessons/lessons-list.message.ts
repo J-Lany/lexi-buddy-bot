@@ -1,5 +1,6 @@
 import type { StudentLessonListItem } from "../../../../../domain/lessons/lessons.types.js";
-import { uiHint, uiMessage, uiTitle } from "../../helpers/ui.js";
+import { uiMessage } from "../../helpers/ui.js";
+import { copy } from "../../helpers/copy.js";
 
 export function lessonsListMessage(params: {
   items: StudentLessonListItem[];
@@ -10,21 +11,19 @@ export function lessonsListMessage(params: {
 
   if (items.length === 0) {
     return uiMessage([
-      uiTitle("📖", "Уроки"),
+      copy.ui.common.title("📖", copy.ui.lessons.list.title(page, pages)),
       "",
-      "Пока тут пусто.",
+      copy.ui.lessons.list.emptyText,
       "",
-      uiHint("Попроси преподавателя назначить урок — и он появится здесь."),
+      copy.ui.common.hint(copy.ui.lessons.list.emptyHint),
     ]);
   }
 
-  const header = pages > 1 ? `Уроки • ${page + 1}/${pages}` : "Уроки";
-
   return uiMessage([
-    uiTitle("📖", header),
+    copy.ui.common.title("📖", copy.ui.lessons.list.title(page, pages)),
     "",
-    "Выбери урок 👇",
+    copy.ui.lessons.list.choose,
     "",
-    uiHint("Можно пролистать список кнопками ниже."),
+    copy.ui.common.hint(copy.ui.lessons.list.pagingHint),
   ]);
 }

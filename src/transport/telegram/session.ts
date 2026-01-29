@@ -54,7 +54,6 @@ export type AssignmentRunState = {
   ui?: {
     feedbackText?: string | null;
     canGoNext?: boolean;
-    feedbackForQuestionId?: number | null;
   };
 };
 

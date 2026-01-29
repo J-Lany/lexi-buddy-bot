@@ -1,6 +1,7 @@
 import { InlineKeyboard } from "grammy";
 import { isAssignmentDone } from "../../../../domain/student-assignments/student-assignment-status.js";
 import type { LessonAssignmentListItem } from "../../../../domain/lessons/lessons.types.js";
+import { copy } from "../helpers/copy.js";
 
 function statusIcon(isDone: boolean) {
   return isDone ? "✅" : "⏳";
@@ -17,7 +18,10 @@ export function lessonAssignmentsKeyboard(items: LessonAssignmentListItem[]) {
     ).row();
   }
 
-  kb.text("🔙️ Назад к урокам", "nav:back").text("🏠 Меню", "nav:home");
+  kb.text(copy.kb.nav.backToLessons, "nav:back").text(
+    copy.kb.nav.menu,
+    "nav:home",
+  );
 
   return kb;
 }

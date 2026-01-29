@@ -1,10 +1,11 @@
 import { InlineKeyboard } from "grammy";
+import { copy } from "../helpers/copy.js";
 
 export function mainInlineKeyboard() {
   return new InlineKeyboard()
-    .text("📖 Мои уроки", "nav:lessons")
+    .text(copy.kb.main.lessons, "nav:lessons")
     .row()
-    .text("👤 Профиль", "nav:profile")
+    .text(copy.kb.main.profile, "nav:profile")
     .row()
-    .text("❓ Помощь", "nav:help");
+    .text(copy.kb.main.help, "nav:help");
 }

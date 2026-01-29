@@ -28,13 +28,19 @@ export async function safeEditScreen(
 
   if (chatId && screenMessageId) {
     try {
-      await ctx.api.editMessageText(chatId, screenMessageId, text, options);
+      await ctx.api.editMessageText(chatId, screenMessageId, text, {
+        ...options,
+        parse_mode: options.parse_mode ?? "HTML",
+      });
       return;
     } catch (err) {
       if (!isIgnorableEditError(err)) throw err;
     }
   }
 
-  const msg = await ctx.reply(text, options);
+  const msg = await ctx.reply(text, {
+    ...options,
+    parse_mode: options.parse_mode ?? "HTML",
+  });
   ctx.session.ui.screenMessageId = msg.message_id;
 }

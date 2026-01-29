@@ -11,6 +11,7 @@ import {
 
 import { isTextQuestion } from "../../../../domain/assignment-run/question.type.js";
 import { maxAttemptsForQuestionType } from "../../../../domain/assignment-run/attempts.policy.js";
+import { copy } from "../../ui/helpers/copy.js";
 
 export async function renderAssignmentQuestionScreen(
   ctx: BotContext,
@@ -21,7 +22,7 @@ export async function renderAssignmentQuestionScreen(
 
   const run = ctx.session.assignmentRun;
   if (!run) {
-    await sendChat(ctx, "Сессия задания не найдена. Открой задание заново.");
+    await sendChat(ctx, copy.ui.assignment.sessionNotFound);
     return;
   }
 
@@ -32,7 +33,7 @@ export async function renderAssignmentQuestionScreen(
   const a = run.assignment;
   const q = a.questions[run.index];
   if (!q) {
-    await sendChat(ctx, "Вопрос не найден. Открой задание заново.");
+    await sendChat(ctx, copy.ui.assignment.question.questionNotFound);
     return;
   }
 

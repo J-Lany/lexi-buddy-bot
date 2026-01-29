@@ -1,61 +1,65 @@
 import type { NavScreen } from "../../session.js";
+import { copy } from "../helpers/copy.js";
 
-type Crumb = { icon?: string; title: string };
+export type BreadcrumbMeta = {
+  lessonTitle?: string | null;
+  assignmentType?: string | null;
+};
+
+type Crumb = { title: string };
 
 function joinCrumbs(crumbs: Crumb[]) {
-  return crumbs
-    .map((c) => `${c.icon ? c.icon + " " : ""}${c.title}`)
-    .join("  ›  ");
+  return `<i>${crumbs.map((c) => c.title).join("  ›  ")}</i>`;
 }
 
-/**
- * Breadcrumb для верхней строки экрана.
- * Делаем коротко, без динамических title урока/задания (их можно добавить позже, когда будет кэш/детали).
- */
-export function breadcrumb(screen: NavScreen): string {
-  const home: Crumb = { icon: "🏠", title: "Меню" };
+export function breadcrumb(
+  screen: NavScreen,
+  meta: BreadcrumbMeta = {},
+): string {
+  const home: Crumb = { title: copy.ui.common.text.menu };
 
   if (screen.name === "home") return joinCrumbs([home]);
 
   if (screen.name === "lessons_list")
-    return joinCrumbs([home, { icon: "📖", title: "Уроки" }]);
+    return joinCrumbs([home, { title: copy.ui.common.text.lessons }]);
 
-  if (screen.name === "lesson")
+  if (screen.name === "lesson") {
+    const lessonTitle = meta.lessonTitle?.trim() || copy.ui.common.text.lessons;
+
     return joinCrumbs([
       home,
-      { icon: "📖", title: "Уроки" },
-      { icon: "📘", title: `Урок #${screen.lessonId}` },
+      { title: copy.ui.common.text.lessons },
+      { title: lessonTitle },
     ]);
+  }
 
-  if (screen.name === "assignment_intro")
+  if (screen.name === "assignment_intro") {
+    const lessonTitle = meta.lessonTitle?.trim() || copy.ui.common.text.lessons;
+
+    const assignmentTitle =
+      meta.assignmentType?.trim() || copy.ui.common.text.assignment;
+
     return joinCrumbs([
       home,
-      { icon: "📖", title: "Уроки" },
-      { icon: "📝", title: `Задание #${screen.assignmentId}` },
+      { title: copy.ui.common.text.lessons },
+      { title: lessonTitle },
+      { title: assignmentTitle },
     ]);
-
-  if (screen.name === "assignment_question")
-    return joinCrumbs([home, { icon: "📝", title: "Задание" }]);
-
-  if (screen.name === "assignment_done")
-    return joinCrumbs([home, { icon: "📝", title: "Задание" }]);
-
-  if (screen.name === "assignment_review")
-    return joinCrumbs([home, { icon: "📝", title: "Разбор" }]);
+  }
 
   if (screen.name === "profile")
-    return joinCrumbs([home, { icon: "👤", title: "Профиль" }]);
+    return joinCrumbs([home, { title: copy.ui.common.text.profile }]);
 
   if (screen.name === "help")
-    return joinCrumbs([home, { icon: "❓", title: "Помощь" }]);
+    return joinCrumbs([home, { title: copy.ui.common.text.help }]);
 
   return joinCrumbs([home]);
 }
 
-/**
- * Оборачивает любой экран в breadcrumb сверху.
- * Между хлебными крошками и контентом — пустая строка.
- */
-export function withBreadcrumb(screen: NavScreen, body: string) {
-  return `${breadcrumb(screen)}\n\n${body}`;
+export function withBreadcrumb(
+  screen: NavScreen,
+  body: string,
+  meta: BreadcrumbMeta = {},
+) {
+  return `${breadcrumb(screen, meta)}\n\n${body}`;
 }

@@ -1,8 +1,9 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
 import { teacherRequestKeyboard } from "../ui/keyboards/teacher-request.keyboard.js";
-import { uiHint, uiMessage, uiTitle } from "../ui/helpers/ui.js";
+import { uiMessage } from "../ui/helpers/ui.js";
 import { escapeHtml } from "../ui/helpers/html.js";
+import { copy } from "../ui/helpers/copy.js";
 
 export type TeacherRequestNotification = {
   telegramId: number;
@@ -20,17 +21,21 @@ export class TeacherRequestNotificationSender {
     const teacherLabel =
       payload.teacherName && payload.teacherName.trim()
         ? payload.teacherName.trim()
-        : "Преподаватель";
+        : copy.ui.notifications.teacherRequest.teacherFallbackName;
+
+    const teacherNameHtml = escapeHtml(teacherLabel);
 
     const text = uiMessage([
-      uiTitle("👩‍🏫", "Запрос от преподавателя"),
+      copy.ui.common.title("👩‍🏫", copy.ui.notifications.teacherRequest.title),
       "",
-      `<b>${escapeHtml(teacherLabel)}</b> хочет добавить тебя как студента.`,
+      copy.ui.notifications.teacherRequest.body(teacherNameHtml),
       payload.message?.trim()
-        ? `\n💬 ${escapeHtml(payload.message.trim())}`
+        ? `\n${copy.ui.notifications.teacherRequest.messagePrefix} ${escapeHtml(
+            payload.message.trim(),
+          )}`
         : null,
       "",
-      uiHint("Выбери действие кнопками ниже."),
+      copy.ui.common.hint(copy.ui.notifications.teacherRequest.hint),
     ]);
 
     await this.bot.api.sendMessage(chatId, text, {

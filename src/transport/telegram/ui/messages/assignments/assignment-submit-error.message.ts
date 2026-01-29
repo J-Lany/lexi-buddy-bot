@@ -1,5 +1,6 @@
 import { escapeHtml } from "../../helpers/html.js";
-import { uiMessage, uiHint, uiTitle } from "../../helpers/ui.js";
+import { uiMessage } from "../../helpers/ui.js";
+import { copy } from "../../helpers/copy.js";
 
 export function assignmentSubmitErrorMessage(params: {
   details?: string | null;
@@ -7,16 +8,15 @@ export function assignmentSubmitErrorMessage(params: {
   const details = params.details?.trim() || null;
 
   return uiMessage([
-    uiTitle("⚠️", "Не получилось отправить ответы"),
+    copy.ui.common.title("⚠️", copy.ui.assignment.submitError.title),
     "",
-    "Похоже, связь прервалась или сервер занят.",
-    "Нажми <b>«Повторить отправку»</b> — и продолжим.",
+    copy.ui.assignment.submitError.text,
     "",
-    uiHint(
-      "Если ошибка повторяется — просто заверши, ответы останутся у тебя в истории чата.",
-    ),
+    copy.ui.common.hint(copy.ui.assignment.submitError.hint),
     details
-      ? `\n<blockquote><i>Детали</i>\n${escapeHtml(details)}</blockquote>`
+      ? `\n<blockquote><i>${copy.ui.assignment.submitError.detailsTitle}</i>\n${escapeHtml(
+          details,
+        )}</blockquote>`
       : null,
   ]);
 }

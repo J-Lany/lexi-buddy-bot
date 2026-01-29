@@ -6,5 +6,5 @@ export async function sendChat(
   text: string,
   opts: { reply_markup?: InlineKeyboardMarkup; parse_mode?: "HTML" } = {},
 ) {
-  await ctx.reply(text, opts);
+  await ctx.reply(text, { ...opts, parse_mode: opts.parse_mode ?? "HTML" });
 }

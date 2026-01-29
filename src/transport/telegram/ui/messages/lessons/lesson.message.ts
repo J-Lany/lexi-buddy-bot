@@ -1,6 +1,7 @@
 import type { LessonAssignmentListItem } from "../../../../../domain/lessons/lessons.types.js";
 import { isAssignmentDone } from "../../../../../domain/student-assignments/student-assignment-status.js";
-import { uiHint, uiMessage, uiTitle, uiMeta } from "../../helpers/ui.js";
+import { uiMessage, uiMeta } from "../../helpers/ui.js";
+import { copy } from "../../helpers/copy.js";
 
 export function lessonMessage(params: {
   lessonId: number;
@@ -16,23 +17,23 @@ export function lessonMessage(params: {
 
   if (items.length === 0) {
     return uiMessage([
-      uiTitle("📘", title),
+      copy.ui.common.title("📘", title),
       meta,
       "",
-      "В этом уроке пока нет заданий.",
+      copy.ui.lessons.lesson.emptyText,
       "",
-      uiHint("Если ожидаешь задания — уточни у преподавателя 🙂"),
+      copy.ui.common.hint(copy.ui.lessons.lesson.emptyHint),
     ]);
   }
 
   const done = items.filter((x) => isAssignmentDone(x.status)).length;
 
   return uiMessage([
-    uiTitle("📘", title),
+    copy.ui.common.title("📘", title),
     meta,
     "",
-    `Прогресс: <b>${done}/${items.length}</b>`,
+    copy.ui.common.labels.progress(done, items.length),
     "",
-    "Выбери задание 👇",
+    copy.ui.lessons.lesson.chooseAssignment,
   ]);
 }

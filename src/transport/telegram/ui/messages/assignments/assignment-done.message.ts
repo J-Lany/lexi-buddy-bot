@@ -1,16 +1,17 @@
-import { uiMessage, uiHint, uiTitle } from "../../helpers/ui.js";
+import { uiMessage } from "../../helpers/ui.js";
+import { copy } from "../../helpers/copy.js";
 
 export function assignmentDoneMessage(score: number | null) {
   const result =
     score === null
-      ? "Ответы сохранены."
-      : `Результат: <b>${Math.round(score * 100)}%</b>`;
+      ? copy.ui.assignment.done.saved
+      : copy.ui.common.labels.resultPercent(Math.round(score * 100));
 
   return uiMessage([
-    uiTitle("✅", "Готово"),
+    copy.ui.common.title("✅", copy.ui.assignment.done.title),
     "",
     result,
     "",
-    uiHint("Хочешь — разберём ответы по шагам."),
+    copy.ui.common.hint(copy.ui.assignment.done.hint),
   ]);
 }

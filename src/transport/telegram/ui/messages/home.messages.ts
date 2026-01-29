@@ -1,18 +1,13 @@
-import { uiHint, uiMessage, uiTitle } from "../helpers/ui.js";
-import { escapeHtml } from "../helpers/html.js";
+import { uiMessage } from "../helpers/ui.js";
+import { copy } from "../helpers/copy.js";
 
 export function homeMessage(firstName?: string | null) {
-  const name = firstName?.trim();
-  const greeting = name ? `Привет, ${escapeHtml(name)} 👋` : "Привет 👋";
-
   return uiMessage([
-    uiTitle("🏠", "Меню"),
+    copy.ui.common.title("🏠", copy.ui.home.title),
     "",
-    greeting,
-    "Что хочешь сделать?",
+    copy.ui.home.greeting(firstName),
+    copy.ui.home.question,
     "",
-    uiHint(
-      "Уроки и задания появятся тут автоматически, когда преподаватель их назначит.",
-    ),
+    copy.ui.common.hint(copy.ui.home.hint),
   ]);
 }

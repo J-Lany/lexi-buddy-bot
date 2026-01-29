@@ -10,13 +10,12 @@ import {
 import { safeEditScreen } from "../helpers/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
 import { ack } from "../helpers/ack.js";
+import { copy } from "../ui/helpers/copy.js";
 
 const inFlight = new Set<string>();
 
 function successText(accepted: boolean) {
-  return accepted
-    ? "✅ Ты принял(а) запрос.\nТеперь преподаватель сможет назначать тебе задания."
-    : "Ок, запрос отклонён.";
+  return accepted ? copy.ui.invites.accepted : copy.ui.invites.declined;
 }
 
 export function registerInvitesRoutes(
@@ -38,13 +37,15 @@ export function registerInvitesRoutes(
 
     const telegramId = ctx.from?.id;
     if (!telegramId || !Number.isFinite(inviteId)) {
-      await ack(ctx, "Не удалось определить пользователя");
+      await ack(ctx, copy.ui.invites.errors.cannotIdentifyUser);
       return;
     }
 
     const key = `${telegramId}:${inviteId}`;
     if (inFlight.has(key)) {
-      await ctx.answerCallbackQuery({ text: "Минутку…" }).catch(() => {});
+      await ctx
+        .answerCallbackQuery({ text: copy.ui.invites.inFlight })
+        .catch(() => {});
       return;
     }
 
@@ -59,21 +60,28 @@ export function registerInvitesRoutes(
       });
     } catch (e: unknown) {
       if (e instanceof InviteAlreadyProcessedError) {
-        await safeEditScreen(ctx, "✅ Этот запрос уже обработан.", {
-          reply_markup: undefined,
-        });
+        await safeEditScreen(
+          ctx,
+          `✅ ${copy.ui.invites.errors.alreadyProcessed}`,
+          {
+            reply_markup: undefined,
+          },
+        );
         return;
       }
 
       if (e instanceof InviteNotFoundError) {
-        await safeEditScreen(ctx, "😕 Запрос не найден.", {
+        await safeEditScreen(ctx, `😕 ${copy.ui.invites.errors.notFound}`, {
           reply_markup: undefined,
         });
         return;
       }
 
       const msg = e instanceof Error ? e.message : String(e);
-      await ctx.reply(`⚠️ Не получилось обработать запрос.\nПричина: ${msg}`);
+      await ctx.reply(
+        `${copy.ui.invites.errors.processFailed}\n${copy.ui.invites.errors.reasonPrefix} ${msg}`,
+        { parse_mode: "HTML" },
+      );
     } finally {
       inFlight.delete(key);
     }

@@ -1,32 +1,30 @@
-import { uiHint, uiMessage, uiTitle } from "../helpers/ui.js";
-import { escapeHtml } from "../helpers/html.js";
+import { uiMessage } from "../helpers/ui.js";
+import { copy } from "../helpers/copy.js";
 
 export function startNeedRegMessage(firstName: string) {
   return uiMessage([
-    uiTitle("👋", `Привет, ${escapeHtml(firstName)}!`),
+    copy.ui.start.needReg.title(firstName),
     "",
-    "Я помогу получать задания от преподавателя прямо в этом чате.",
+    copy.ui.start.needReg.text,
     "",
-    uiHint("Нажми «Присоединиться», чтобы подключиться."),
+    copy.ui.common.hint(copy.ui.start.needReg.hint),
   ]);
 }
 
 export function startRegisteredNoTeacherMessage() {
   return uiMessage([
-    uiTitle("✅", "Ты уже подключён(а)"),
+    copy.ui.start.registeredNoTeacher.title,
     "",
-    "Пока нет активной группы с преподавателем — поэтому уроки ещё не появились.",
+    copy.ui.start.registeredNoTeacher.text,
     "",
-    uiHint(
-      "Попроси у преподавателя приглашение — и всё появится автоматически 🙂",
-    ),
+    copy.ui.common.hint(copy.ui.start.registeredNoTeacher.hint),
   ]);
 }
 
 export function startActiveStudentMessage(firstName: string) {
   return uiMessage([
-    uiTitle("✅", `Привет, ${escapeHtml(firstName)}!`),
+    copy.ui.start.activeStudent.title(firstName),
     "",
-    "Готово. Уроки и задания доступны в меню.",
+    copy.ui.start.activeStudent.text,
   ]);
 }

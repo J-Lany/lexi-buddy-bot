@@ -11,6 +11,7 @@ import { beginNewScreen } from "../helpers/begin-new-screen.js";
 import { safeEditScreen } from "../helpers/safe-edit-screen.js";
 import type { RoutesDeps } from "./routes.deps.js";
 import { goTo } from "../helpers/go-to.js";
+import { copy } from "../ui/helpers/copy.js";
 
 export function registerStartRoutes(
   bot: Bot<BotContext>,
@@ -31,7 +32,9 @@ export function registerStartRoutes(
       lastName: from.last_name ?? null,
     };
 
-    await safeEditScreen(ctx, "⌛️ Загружаю…", { reply_markup: undefined });
+    await safeEditScreen(ctx, copy.ui.common.loading, {
+      reply_markup: undefined,
+    });
 
     const view = await deps.home.getStartView(profile);
 

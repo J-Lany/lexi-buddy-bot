@@ -51,7 +51,6 @@ export class AssignmentRunFlow {
       ui: {
         feedbackText: null,
         canGoNext: false,
-        feedbackForQuestionId: null,
       },
     };
 
@@ -89,7 +88,7 @@ export class AssignmentRunFlow {
     const maxAttempts = maxAttemptsForQuestionType(qType);
 
     run.results[params.questionId] ??= { attempts: [] };
-    run.results[params.questionId].attempts.push({
+    run.results[params.questionId]?.attempts.push({
       attempt: 1,
       answer: { answerId: params.answerId, text: chosen.text },
       isCorrect,
@@ -99,7 +98,6 @@ export class AssignmentRunFlow {
     run.shownAt = Date.now();
 
     run.ui = {
-      feedbackForQuestionId: params.questionId,
       canGoNext: true,
       feedbackText: assignmentFeedbackMessage({
         correct: isCorrect,
@@ -149,7 +147,6 @@ export class AssignmentRunFlow {
     const canGoNext = correct || lastTry;
 
     run.ui = {
-      feedbackForQuestionId: questionId,
       canGoNext,
       feedbackText: assignmentFeedbackMessage({
         correct,
@@ -177,7 +174,6 @@ export class AssignmentRunFlow {
 
     run.ui.feedbackText = null;
     run.ui.canGoNext = false;
-    run.ui.feedbackForQuestionId = null;
 
     return { text, canGoNext };
   }
@@ -235,12 +231,12 @@ export class AssignmentRunFlow {
     if (!isLast) return false;
 
     const maxAttempts = maxAttemptsForQuestionType(q.questionType);
-    const finishedThisQuestion =
+
+    return (
       isChoiceQuestion(q.questionType) ||
       last.isCorrect ||
-      last.attempt >= maxAttempts;
-
-    return finishedThisQuestion;
+      last.attempt >= maxAttempts
+    );
   }
 
   async submit(ctx: BotContext, deps: RenderDeps) {
@@ -258,9 +254,11 @@ export class AssignmentRunFlow {
         questionId: Number(qid),
         attempts: payload.attempts.map((a) => ({
           attempt: a.attempt,
-          answer: a.answer,
-          isCorrect: a.isCorrect,
-          responseTimeMs: a.responseTimeMs ?? undefined,
+          ...(a.answer !== undefined ? { answer: a.answer } : {}),
+          ...(a.isCorrect !== undefined ? { isCorrect: a.isCorrect } : {}),
+          ...(a.responseTimeMs !== null
+            ? { responseTimeMs: a.responseTimeMs }
+            : {}),
         })),
       }));
 
@@ -278,17 +276,12 @@ export class AssignmentRunFlow {
 
       navReplaceTop(ctx, { name: "assignment_done" });
     } catch (e) {
-      ctx.session.assignmentSubmitError = {
-        message: e?.message ?? "Submit failed",
-      };
+      const message = e instanceof Error ? e.message : "Submit failed";
+      ctx.session.assignmentSubmitError = { message };
       navReplaceTop(ctx, { name: "assignment_done" });
     } finally {
       run.submitInFlight = false;
     }
-  }
-
-  retrySubmit(ctx: BotContext, deps: RenderDeps) {
-    return this.submit(ctx, deps);
   }
 
   finishToLesson(ctx: BotContext): number | null {

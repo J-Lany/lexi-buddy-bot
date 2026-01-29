@@ -23,8 +23,15 @@ export async function renderAssignmentIntroScreen(
     deps.studentAssignments.preview(telegramId, screen.assignmentId),
   );
 
-  await safeEditScreen(ctx, withBreadcrumb(screen, assignmentIntroMessage(a)), {
-    reply_markup: assignmentIntroKeyboard(),
-    parse_mode: "HTML",
-  });
+  await safeEditScreen(
+    ctx,
+    withBreadcrumb(screen, assignmentIntroMessage(a), {
+      lessonTitle: a.lesson?.title ?? null,
+      assignmentType: a.type ?? null,
+    }),
+    {
+      reply_markup: assignmentIntroKeyboard(),
+      parse_mode: "HTML",
+    },
+  );
 }

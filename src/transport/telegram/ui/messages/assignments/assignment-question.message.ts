@@ -5,6 +5,7 @@ import type {
 import { choiceEmoji } from "../../../helpers/choice-emoji.js";
 import { escapeHtml } from "../../helpers/html.js";
 import { uiMessage } from "../../helpers/ui.js";
+import { copy } from "../../helpers/copy.js";
 
 export function assignmentQuestionMessage(params: {
   a: InternalAssignmentDto;
@@ -13,7 +14,10 @@ export function assignmentQuestionMessage(params: {
 }) {
   const { a, q, index } = params;
 
-  const header = `<b>Вопрос ${index + 1}</b> <i>из ${a.questions.length}</i>`;
+  const header = copy.ui.assignment.question.header(
+    index + 1,
+    a.questions.length,
+  );
   const text = escapeHtml(q.text);
 
   const answers = q.answers?.length
@@ -34,6 +38,6 @@ export function assignmentTextAnswerHintMessage(params: {
 }) {
   const { attempt, maxAttempts } = params;
 
-  if (attempt <= 1) return "✍️ <b>Напиши ответ</b> сообщением.";
-  return `✍️ Попробуй ещё раз <i>(${attempt}/${maxAttempts})</i>.`;
+  if (attempt <= 1) return copy.ui.assignment.question.textHintFirst;
+  return copy.ui.assignment.question.textHintRetry(attempt, maxAttempts);
 }

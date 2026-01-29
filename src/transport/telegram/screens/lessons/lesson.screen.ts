@@ -53,7 +53,9 @@ export async function renderLessonScreen(
         level: meta?.level ?? null,
         items,
       }),
+      { lessonTitle: meta?.title ?? null },
     ),
+
     { reply_markup: lessonAssignmentsKeyboard(items), parse_mode: "HTML" },
   );
 }

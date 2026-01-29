@@ -1,17 +1,16 @@
 import type { InternalAssignmentDto } from "../../../../../infra/backend-api/backend-api.types.js";
-import { escapeHtml } from "../../helpers/html.js";
-import { uiMessage, uiMeta, uiQuote, uiTitle } from "../../helpers/ui.js";
+import { uiMessage, uiMeta } from "../../helpers/ui.js";
+import { copy } from "../../helpers/copy.js";
 
 function howToAnswerText(a: InternalAssignmentDto): string {
   const types = new Set(a.questions.map((q) => q.questionType));
   const hasChoice = types.has("multiple_choice");
   const hasText = types.has("gap_fill") || types.has("open_text");
 
-  if (hasChoice && hasText)
-    return "Где-то нужно выбрать вариант, где-то — написать ответ.";
-  if (hasChoice) return "Выбирай вариант кнопками под сообщением.";
-  if (hasText) return "Пиши ответ сообщением в чат.";
-  return "Следуй подсказкам на экране.";
+  if (hasChoice && hasText) return copy.ui.assignment.intro.howToAnswer.mixed;
+  if (hasChoice) return copy.ui.assignment.intro.howToAnswer.choice;
+  if (hasText) return copy.ui.assignment.intro.howToAnswer.text;
+  return copy.ui.assignment.intro.howToAnswer.fallback;
 }
 
 export function assignmentIntroMessage(a: InternalAssignmentDto) {
@@ -21,23 +20,44 @@ export function assignmentIntroMessage(a: InternalAssignmentDto) {
     a.lesson?.level ?? null,
   ]);
 
+  const typeKey = (a.type ?? "").trim();
+  const typed = (copy.ui.assignment.intro.byType as Record<string, unknown>)[
+    typeKey
+  ] as
+    | {
+        title: string;
+        body: string;
+        exampleTitle: string;
+        exampleBodyHtml: string;
+        note?: string;
+      }
+    | undefined;
+
+  const title = typed?.title ?? copy.ui.assignment.title;
+  const body = typed?.body ?? "";
+  const quoteTitle =
+    typed?.exampleTitle ?? copy.ui.assignment.intro.fallbackExampleTitle;
+  const quoteBody =
+    typed?.exampleBodyHtml ?? copy.ui.assignment.intro.fallbackExampleBodyHtml;
+
+  const howTo = howToAnswerText(a);
+
   return uiMessage([
-    uiTitle("📝", "Задание"),
+    copy.ui.common.title("📝", title),
     meta,
     "",
-    `Вопросов: <b>${a.questions.length}</b>`,
-    `Как отвечать: ${escapeHtml(howToAnswerText(a))}`,
+    body ? body : null,
     "",
-    uiQuote(
-      "Пример",
-      [
-        `<b>Вопрос:</b> What does “break the ice” mean?`,
-        `🇦 Say something funny to make people feel relaxed`,
-        `🇧 Literally break something`,
-        `🇨 Freeze water`,
-      ].join("\n"),
-    ),
+    copy.ui.common.labels.questionsCount(a.questions.length),
+
+    !typed ? `Как отвечать: ${howTo}` : null,
+
     "",
-    "Готов(а)? Нажми <b>«Начать»</b>.",
+    copy.ui.common.quote(quoteTitle, quoteBody),
+
+    typed?.note ? `\n${copy.ui.common.hint(typed.note)}` : null,
+
+    "",
+    copy.ui.assignment.intro.ready,
   ]);
 }

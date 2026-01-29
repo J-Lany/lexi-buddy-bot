@@ -11,6 +11,7 @@ import {
   assignmentSubmitErrorKeyboard,
 } from "../../ui/keyboards/assignment.keyboard.js";
 import { assignmentSubmitErrorMessage } from "../../ui/messages/assignments/assignment-submit-error.message.js";
+import { copy } from "../../ui/helpers/copy.js";
 
 export async function renderAssignmentDoneScreen(
   ctx: BotContext,
@@ -23,10 +24,7 @@ export async function renderAssignmentDoneScreen(
   const err = ctx.session.assignmentSubmitError;
 
   if (!run) {
-    await sendChat(
-      ctx,
-      "Сессия задания не найдена. Вернись в меню и открой задание заново.",
-    );
+    await sendChat(ctx, copy.ui.assignment.sessionNotFound);
     return;
   }
 

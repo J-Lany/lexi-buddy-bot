@@ -1,7 +1,5 @@
 import { escapeHtml, joinLines } from "./html.js";
 
-export type UiTone = "info" | "success" | "warning";
-
 export function uiTitle(icon: string, title: string) {
   return `<b>${icon} ${escapeHtml(title)}</b>`;
 }
@@ -30,10 +28,6 @@ export function uiQuote(title: string, body: string) {
 
 export function uiHint(text: string) {
   return `💡 ${escapeHtml(text)}`;
-}
-
-export function uiDivider() {
-  return "────────";
 }
 
 export function uiMessage(lines: Array<string | null | undefined>) {
