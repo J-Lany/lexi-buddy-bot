@@ -20,7 +20,8 @@ export const copy = {
       hint: (text: string) => `💡 ${h(text)}`,
 
       section: (text: string) => `<b>${h(text)}</b>`,
-      list: (items: string[]) => items.map((x) => `• ${h(x)}`).join("\n"),
+      list: (items: readonly string[]) =>
+        items.map((x) => `• ${h(x)}`).join("\n"),
 
       quote: (title: string, bodyHtml: string) =>
         `<blockquote><i>${h(title)}</i>\n${bodyHtml}</blockquote>`,

@@ -55,25 +55,18 @@ export function registerInvitesRoutes(
         invites.respond({ inviteId, telegramId, accept }),
       );
 
-      await safeEditScreen(ctx, successText(accept), {
-        reply_markup: undefined,
-      });
+      await safeEditScreen(ctx, successText(accept));
     } catch (e: unknown) {
       if (e instanceof InviteAlreadyProcessedError) {
         await safeEditScreen(
           ctx,
           `✅ ${copy.ui.invites.errors.alreadyProcessed}`,
-          {
-            reply_markup: undefined,
-          },
         );
         return;
       }
 
       if (e instanceof InviteNotFoundError) {
-        await safeEditScreen(ctx, `😕 ${copy.ui.invites.errors.notFound}`, {
-          reply_markup: undefined,
-        });
+        await safeEditScreen(ctx, `😕 ${copy.ui.invites.errors.notFound}`);
         return;
       }
 

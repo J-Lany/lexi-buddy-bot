@@ -68,10 +68,11 @@ export function registerStudentAssignmentsRoutes(
     const answerId = Number(m[3]);
 
     const ok = await flow.answerChoice(ctx, {
-      sessionId,
       questionId,
       answerId,
+      ...(sessionId ? { sessionId } : {}),
     });
+
     if (!ok) return;
 
     const fb = flow.takeFeedback(ctx);

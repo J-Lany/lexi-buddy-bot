@@ -58,27 +58,31 @@ export type AssignmentRunState = {
 };
 
 export type SessionData = {
-  reg?: {
-    draft: RegistrationDraft;
-  };
+  reg?:
+    | {
+        draft: RegistrationDraft;
+      }
+    | undefined;
 
   nav: {
     stack: NavScreen[];
   };
 
   ui: {
-    screenMessageId?: number;
-    bannerText?: string | null;
-    lessonsById?: Record<
-      number,
-      { title: string; topic: string | null; level: string | null }
-    >;
+    screenMessageId?: number | undefined;
+    bannerText?: string | null | undefined;
+    lessonsById?:
+      | Record<
+          number,
+          { title: string; topic: string | null; level: string | null }
+        >
+      | undefined;
   };
 
-  assignmentRun?: AssignmentRunState | null;
+  assignmentRun?: AssignmentRunState | null | undefined;
 
-  assignmentLastScore?: number | null;
-  assignmentSubmittedAt?: number;
+  assignmentLastScore?: number | null | undefined;
+  assignmentSubmittedAt?: number | undefined;
 
-  assignmentSubmitError?: { message: string } | null;
+  assignmentSubmitError?: { message: string } | null | undefined;
 };

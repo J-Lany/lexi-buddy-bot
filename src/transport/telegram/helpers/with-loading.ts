@@ -6,9 +6,7 @@ export async function withLoadingScreen<T>(
   ctx: BotContext,
   loader: () => Promise<T>,
 ): Promise<T> {
-  await safeEditScreen(ctx, copy.ui.common.loading, {
-    reply_markup: undefined,
-  });
+  await safeEditScreen(ctx, copy.ui.common.loading);
 
   return loader();
 }

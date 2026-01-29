@@ -17,9 +17,7 @@ export function registerRegistrationRoutes(
     beginNewScreen(ctx);
 
     delete ctx.session.reg;
-    await safeEditScreen(ctx, copy.ui.registration.cancelOk, {
-      reply_markup: undefined,
-    });
+    await safeEditScreen(ctx, copy.ui.registration.cancelOk);
   });
 
   bot.on("message:text", async (ctx, next) => {
@@ -27,9 +25,7 @@ export function registerRegistrationRoutes(
 
     beginNewScreen(ctx);
 
-    await safeEditScreen(ctx, copy.ui.registration.inProgress, {
-      reply_markup: undefined,
-    });
+    await safeEditScreen(ctx, copy.ui.registration.inProgress);
   });
 
   bot.callbackQuery("reg_begin", async (ctx) => {
@@ -43,15 +39,11 @@ export function registerRegistrationRoutes(
       await withLoadingScreen(ctx, () => regService.register(reg.draft));
       delete ctx.session.reg;
 
-      await safeEditScreen(ctx, copy.ui.registration.success, {
-        reply_markup: undefined,
-      });
+      await safeEditScreen(ctx, copy.ui.registration.success);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
 
-      await safeEditScreen(ctx, copy.ui.registration.failed, {
-        reply_markup: undefined,
-      });
+      await safeEditScreen(ctx, copy.ui.registration.failed);
 
       await ctx.reply(
         `${copy.ui.registration.reasonPrefix} ${msg}\n\n${copy.ui.registration.tryAgain}`,
@@ -67,8 +59,6 @@ export function registerRegistrationRoutes(
       .answerCallbackQuery({ text: copy.ui.registration.callbackOk })
       .catch(() => {});
 
-    await safeEditScreen(ctx, copy.ui.registration.cancelShort, {
-      reply_markup: undefined,
-    });
+    await safeEditScreen(ctx, copy.ui.registration.cancelShort);
   });
 }

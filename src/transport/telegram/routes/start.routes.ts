@@ -32,9 +32,7 @@ export function registerStartRoutes(
       lastName: from.last_name ?? null,
     };
 
-    await safeEditScreen(ctx, copy.ui.common.loading, {
-      reply_markup: undefined,
-    });
+    await safeEditScreen(ctx, copy.ui.common.loading);
 
     const view = await deps.home.getStartView(profile);
 
