@@ -42,6 +42,12 @@ export type InternalAssignmentQuestionDto = {
   answers: InternalAssignmentQuestionAnswerDto[];
 };
 
+export type AssignmentVocabItemDto = {
+  term: string;
+  translation?: string | null;
+  synonyms?: string[] | null;
+};
+
 export type InternalAssignmentDto = {
   assignmentId: number;
   type: string;
@@ -53,6 +59,7 @@ export type InternalAssignmentDto = {
     topic: string | null;
   };
   questions: InternalAssignmentQuestionDto[];
+  vocab: AssignmentVocabItemDto[];
 };
 
 export type AttemptsPolicyDto = {
@@ -66,7 +73,7 @@ export type InternalAssignmentPreviewResponseDto = {
 };
 
 export type InternalStartAssignmentResponseDto = {
-  studentAssignmentId: number;
+  attemptId: number;
   attemptNo: number;
   status: string;
   attemptsPolicy: AttemptsPolicyDto;
@@ -87,14 +94,13 @@ export type SubmitQuestionResultDto = {
 
 export type SubmitAssignmentRequestDto = {
   telegramId: number;
-  studentAssignmentId: number;
+  attemptId: number;
   clientSessionId?: string;
   results: SubmitQuestionResultDto[];
 };
 
 export type SubmitAssignmentResponseDto = {
   ok: boolean;
-  studentAssignmentId: number;
   savedAttempts: number;
   score: number | null;
   status: string;

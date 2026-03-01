@@ -17,9 +17,7 @@ export async function renderHomeScreen(
   const banner = ctx.session.ui.bannerText ?? null;
   ctx.session.ui.bannerText = null;
 
-  const body = banner
-    ? `${banner}\n\n${homeMessage(ctx.from?.first_name ?? null)}`
-    : homeMessage(ctx.from?.first_name ?? null);
+  const body = banner ? `${banner}` : homeMessage(ctx.from?.first_name ?? null);
 
   await safeEditScreen(ctx, withBreadcrumb(screen, body), {
     reply_markup: mainInlineKeyboard(),

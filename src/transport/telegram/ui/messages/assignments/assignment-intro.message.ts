@@ -1,6 +1,7 @@
 import type { InternalAssignmentDto } from "../../../../../infra/backend-api/backend-api.types.js";
 import { uiMessage, uiMeta } from "../../helpers/ui.js";
 import { copy } from "../../helpers/copy.js";
+import { escapeHtml } from "../../helpers/html.js";
 
 function howToAnswerText(a: InternalAssignmentDto): string {
   const types = new Set(a.questions.map((q) => q.questionType));
@@ -11,6 +12,31 @@ function howToAnswerText(a: InternalAssignmentDto): string {
   if (hasChoice) return copy.ui.assignment.intro.howToAnswer.choice;
   if (hasText) return copy.ui.assignment.intro.howToAnswer.text;
   return copy.ui.assignment.intro.howToAnswer.fallback;
+}
+
+function vocabBlock(a: InternalAssignmentDto): string | null {
+  const items = (a.vocab ?? []).filter((x) => x.term?.trim());
+  if (items.length === 0) return null;
+
+  const lines = items.map((x) => {
+    const term = escapeHtml(x.term.trim());
+
+    const tr = x.translation?.trim()
+      ? ` — ${escapeHtml(x.translation.trim())}`
+      : "";
+
+    const syn = x.synonyms?.length
+      ? `\n<i>Синонимы:</i> ${escapeHtml(x.synonyms.join(", "))}`
+      : "";
+
+    return `• <b>${term}</b>${tr}${syn}`;
+  });
+
+  const content = lines.join("\n\n");
+  return [
+    copy.ui.common.section("Словарь"),
+    `<blockquote expandable>\n${content}\n</blockquote>`,
+  ].join("\n");
 }
 
 export function assignmentIntroMessage(a: InternalAssignmentDto) {
@@ -41,11 +67,14 @@ export function assignmentIntroMessage(a: InternalAssignmentDto) {
     typed?.exampleBodyHtml ?? copy.ui.assignment.intro.fallbackExampleBodyHtml;
 
   const howTo = howToAnswerText(a);
+  const vocab = vocabBlock(a);
 
   return uiMessage([
-    copy.ui.common.title("📝", title),
     meta,
     "",
+    copy.ui.common.title("📝", title),
+    "",
+    vocab ? `${vocab}\n` : null,
     body ? body : null,
     "",
     copy.ui.common.labels.questionsCount(a.questions.length),

@@ -13,7 +13,7 @@ export function startNeedRegMessage(firstName: string) {
 
 export function startRegisteredNoTeacherMessage() {
   return uiMessage([
-    copy.ui.start.registeredNoTeacher.title,
+    copy.ui.common.title("✨", copy.ui.start.registeredNoTeacher.title),
     "",
     copy.ui.start.registeredNoTeacher.text,
     "",
