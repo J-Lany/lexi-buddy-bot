@@ -14,6 +14,7 @@ import {
 import { maxAttemptsForQuestionType } from "../../domain/assignment-run/attempts.policy.js";
 import { getCorrectAnswerText } from "../../domain/assignment-run/correct-answer.js";
 import { isCorrectTextAnswer } from "../../domain/assignment-run/answer.check.js";
+import { shuffled } from "../../domain/assignment-run/shuffle.js";
 
 export class AssignmentRunFlow {
   async begin(ctx: BotContext, deps: RenderDeps, assignmentId: number) {
@@ -25,17 +26,35 @@ export class AssignmentRunFlow {
       assignmentId,
     );
 
+    const randomizedQuestions = shuffled(started.assignment.questions).map(
+      (q) => {
+        if (isChoiceQuestion(q.questionType) && q.answers?.length) {
+          return {
+            ...q,
+            answers: shuffled(q.answers),
+          };
+        }
+
+        return q;
+      },
+    );
+
+    const randomizedAssignment = {
+      ...started.assignment,
+      questions: randomizedQuestions,
+    };
+
     ctx.session.assignmentRun = {
       clientSessionId: randomUUID(),
 
       assignmentId: started.assignment.assignmentId,
       lessonId: started.assignment.lesson.lessonId,
 
-      studentAssignmentId: started.studentAssignmentId,
+      attemptId: started.attemptId,
       attemptNo: started.attemptNo,
 
       attemptsPolicy: started.attemptsPolicy ?? null,
-      assignment: started.assignment,
+      assignment: randomizedAssignment,
 
       index: 0,
       shownAt: Date.now(),
@@ -100,6 +119,7 @@ export class AssignmentRunFlow {
     run.ui = {
       canGoNext: true,
       feedbackText: assignmentFeedbackMessage({
+        questionType: q.questionType,
         correct: isCorrect,
         attempt: 1,
         maxAttempts,
@@ -149,6 +169,7 @@ export class AssignmentRunFlow {
     run.ui = {
       canGoNext,
       feedbackText: assignmentFeedbackMessage({
+        questionType: q.questionType,
         correct,
         attempt: attemptNo,
         maxAttempts,
@@ -264,7 +285,7 @@ export class AssignmentRunFlow {
 
       const res = await deps.studentAssignments.submit({
         telegramId,
-        studentAssignmentId: run.studentAssignmentId,
+        attemptId: run.attemptId,
         clientSessionId: run.clientSessionId,
         results,
       });

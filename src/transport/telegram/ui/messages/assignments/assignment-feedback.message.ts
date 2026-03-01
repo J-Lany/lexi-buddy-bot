@@ -1,7 +1,12 @@
 import { uiMessage } from "../../helpers/ui.js";
 import { copy } from "../../helpers/copy.js";
+import {
+  isChoiceQuestion,
+  isTextQuestion,
+} from "../../../../../domain/assignment-run/question.type.js";
 
 export function assignmentFeedbackMessage(params: {
+  questionType: string;
   correct: boolean;
   attempt: number;
   maxAttempts: number;
@@ -10,6 +15,7 @@ export function assignmentFeedbackMessage(params: {
   showCorrectAnswer: boolean;
 }) {
   const {
+    questionType,
     correct,
     attempt,
     maxAttempts,
@@ -22,25 +28,64 @@ export function assignmentFeedbackMessage(params: {
 
   if (correct) {
     lines.push(copy.ui.assignment.feedback.correct);
-  } else {
+
+    if (explanation?.trim()) {
+      lines.push("");
+      lines.push(copy.ui.assignment.feedback.explanationTitle);
+      lines.push(explanation.trim());
+    }
+
+    return uiMessage(lines);
+  }
+
+  if (isChoiceQuestion(questionType)) {
+    lines.push(copy.ui.assignment.feedback.wrongChoice);
+
+    if (correctAnswerText) {
+      lines.push("");
+      lines.push(copy.ui.assignment.feedback.correctAnswer(correctAnswerText));
+    }
+
+    if (explanation?.trim()) {
+      lines.push("");
+      lines.push(copy.ui.assignment.feedback.explanationTitle);
+      lines.push(explanation.trim());
+    }
+
+    return uiMessage(lines);
+  }
+
+  if (isTextQuestion(questionType)) {
     if (attempt < maxAttempts) {
       lines.push(
         copy.ui.assignment.feedback.wrongTryAgain(attempt, maxAttempts),
       );
-    } else {
-      lines.push(copy.ui.assignment.feedback.wrongNoMore(attempt, maxAttempts));
+      return uiMessage(lines);
     }
+
+    lines.push(
+      copy.ui.assignment.feedback.wrongNoMoreText(attempt, maxAttempts),
+    );
 
     if (showCorrectAnswer && correctAnswerText) {
       lines.push("");
       lines.push(copy.ui.assignment.feedback.correctAnswer(correctAnswerText));
     }
+
+    if (explanation?.trim()) {
+      lines.push("");
+      lines.push(copy.ui.assignment.feedback.explanationTitle);
+      lines.push(explanation.trim());
+    }
+
+    return uiMessage(lines);
   }
 
-  if (explanation?.trim()) {
+  lines.push(copy.ui.assignment.feedback.wrongChoice);
+
+  if (correctAnswerText) {
     lines.push("");
-    lines.push(copy.ui.assignment.feedback.explanationTitle);
-    lines.push(explanation.trim());
+    lines.push(copy.ui.assignment.feedback.correctAnswer(correctAnswerText));
   }
 
   return uiMessage(lines);

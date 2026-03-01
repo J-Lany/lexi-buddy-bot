@@ -7,10 +7,10 @@ import {
   InviteNotFoundError,
 } from "../../../domain/invites/invites.errors.js";
 
-import { safeEditScreen } from "../helpers/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
 import { ack } from "../helpers/ack.js";
 import { copy } from "../ui/helpers/copy.js";
+import { safeEditCallbackMessage } from "../helpers/safe-edit-callback-message.js";
 
 const inFlight = new Set<string>();
 
@@ -55,18 +55,32 @@ export function registerInvitesRoutes(
         invites.respond({ inviteId, telegramId, accept }),
       );
 
-      await safeEditScreen(ctx, successText(accept));
+      await safeEditCallbackMessage(ctx, successText(accept), {
+        reply_markup: { inline_keyboard: [] },
+        parse_mode: "HTML",
+      });
     } catch (e: unknown) {
       if (e instanceof InviteAlreadyProcessedError) {
-        await safeEditScreen(
+        await safeEditCallbackMessage(
           ctx,
           `✅ ${copy.ui.invites.errors.alreadyProcessed}`,
+          {
+            reply_markup: { inline_keyboard: [] },
+            parse_mode: "HTML",
+          },
         );
         return;
       }
 
       if (e instanceof InviteNotFoundError) {
-        await safeEditScreen(ctx, `😕 ${copy.ui.invites.errors.notFound}`);
+        await safeEditCallbackMessage(
+          ctx,
+          `😕 ${copy.ui.invites.errors.notFound}`,
+          {
+            reply_markup: { inline_keyboard: [] },
+            parse_mode: "HTML",
+          },
+        );
         return;
       }
 

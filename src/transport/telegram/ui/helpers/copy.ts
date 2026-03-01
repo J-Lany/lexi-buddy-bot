@@ -24,7 +24,7 @@ export const copy = {
         items.map((x) => `• ${h(x)}`).join("\n"),
 
       quote: (title: string, bodyHtml: string) =>
-        `<blockquote><i>${h(title)}</i>\n${bodyHtml}</blockquote>`,
+        `<blockquote expandable><i>${h(title)}</i>\n${bodyHtml}</blockquote>`,
 
       labels: {
         questionsCount: (n: number) => `Вопросов: <b>${n}</b>`,
@@ -34,7 +34,7 @@ export const copy = {
       },
 
       text: {
-        menu: "Меню",
+        menu: "Главная",
         lessons: "Уроки",
         profile: "Профиль",
         help: "Помощь",
@@ -47,7 +47,7 @@ export const copy = {
       title: "Меню",
       greeting: (name?: string | null) => {
         const n = name?.trim();
-        return n ? `Привет, ${h(n)} 👋` : "Привет 👋";
+        return n ? `Привет, ${h(n)} 👋` : "Привет привет👋";
       },
       question: "Что хочешь сделать?",
       hint: "Уроки и задания появятся здесь, когда преподаватель их назначит.",
@@ -91,6 +91,8 @@ export const copy = {
         emptyText: "В этом уроке пока нет заданий.",
         emptyHint: "Если ожидаешь задания — уточни у преподавателя.",
         chooseAssignment: "Выбери задание",
+        newLesson: "Назначен новый урок",
+        openLesson: "Открой урок, чтобы посмотреть задания",
       },
     },
 
@@ -98,7 +100,7 @@ export const copy = {
       title: "Задание",
 
       intro: {
-        ready: "Нажми <b>«Начать»</b>.",
+        ready: "Нажми <b>«🚀 Начать»</b>.",
 
         howToAnswer: {
           mixed: "Где-то выбери вариант, где-то — напиши ответ.",
@@ -188,18 +190,19 @@ export const copy = {
       },
 
       feedback: {
-        correct: "✅ <b>Верно</b>",
+        correct: "✨ <b>Верно.</b>",
+        wrongChoice: "🙂 <b>Не совсем.</b>",
 
         wrongTryAgain: (attempt: number, max: number) =>
-          `❌ Попробуй ещё раз <i>(${attempt}/${max})</i>.`,
+          `🙂 <b>Не совсем.</b> Попробуй ещё раз <i>(${attempt}/${max})</i>.`,
 
-        wrongNoMore: (attempt: number, max: number) =>
-          `❌ Попытки закончились <i>(${attempt}/${max})</i>.`,
+        wrongNoMoreText: (attempt: number, max: number) =>
+          `⏳ <b>Больше попыток нет.</b> <i>(${attempt}/${max})</i>.`,
 
         correctAnswer: (answerText: string) =>
-          `✅ Правильный ответ: <b>${h(answerText)}</b>`,
+          `🔎 Правильный ответ: <b>${h(answerText)}</b>`,
 
-        explanationTitle: "🧠 <b>Пояснение</b>",
+        explanationTitle: "💡 <b>Пояснение</b>",
       },
 
       done: {
@@ -236,9 +239,9 @@ export const copy = {
       },
 
       registeredNoTeacher: {
-        title: "<b>✅ Ты уже подключён(а)</b>",
-        text: "Пока нет активной группы — уроки ещё не появились.",
-        hint: "Попроси у преподавателя приглашение.",
+        title: "Регистрация завершена.",
+        text: "Этот бот работает вместе с преподавателем, сейчас тебя ещё не добавили.",
+        hint: "После подключения преподаватель сможет назначать здесь уроки.",
       },
 
       activeStudent: {
@@ -269,7 +272,7 @@ export const copy = {
       },
       inFlight: "Минутку…",
       accepted:
-        "✅ Запрос принят.\nТеперь преподаватель сможет назначать тебе задания.",
+        "✔ Запрос принят.\n\nТеперь преподаватель сможет назначать тебе задания.",
       declined: "Ок. Запрос отклонён.",
     },
     notifications: {
@@ -289,6 +292,7 @@ export const copy = {
       back: "🔙️ Назад",
       menu: "🏠 Меню",
       backToLessons: "🔙️ К урокам",
+      openLesson: "🔎 Посмотреть урок",
     },
 
     main: {

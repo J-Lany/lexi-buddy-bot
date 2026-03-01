@@ -18,8 +18,8 @@ export type AssignmentRunState = {
 
   assignmentId: number;
   lessonId: number;
+  attemptId: number;
 
-  studentAssignmentId: number;
   attemptNo: number;
 
   attemptsPolicy: {

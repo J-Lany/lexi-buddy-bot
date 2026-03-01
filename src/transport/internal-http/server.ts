@@ -6,6 +6,8 @@ import express, {
 import { env } from "../../config/env.js";
 import { parseTeacherRequestPayload } from "./teacher-request.dto.js";
 import type { TeacherRequestNotificationSender } from "../telegram/notifications/teacher-request.notification.js";
+import { parseLessonAssignedPayload } from "./lesson-assigned.dto.js";
+import type { LessonAssignedNotificationSender } from "../telegram/notifications/lesson-assigned.notification.js";
 
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const token = req.header("x-internal-token");
@@ -19,6 +21,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
 
 export function startInternalHttpServer(deps: {
   teacherRequestNotifier: TeacherRequestNotificationSender;
+  lessonAssignedNotifier: LessonAssignedNotificationSender;
 }) {
   const app = express();
   app.use(express.json({ limit: "256kb" }));
@@ -37,6 +40,25 @@ export function startInternalHttpServer(deps: {
       res.status(202).json({ ok: true });
 
       void deps.teacherRequestNotifier.send(payload).catch((err) => {
+        console.error("[internal-http] telegram send failed", err);
+      });
+    },
+  );
+
+  app.post(
+    "/internal/lesson-assigned",
+    authMiddleware,
+    (req: Request, res: Response) => {
+      let payload;
+      try {
+        payload = parseLessonAssignedPayload(req.body);
+      } catch {
+        return res.status(400).json({ error: "Invalid payload" });
+      }
+
+      res.status(202).json({ ok: true });
+
+      void deps.lessonAssignedNotifier.send(payload).catch((err) => {
         console.error("[internal-http] telegram send failed", err);
       });
     },
