@@ -1,6 +1,9 @@
 import { InlineKeyboard } from "grammy";
 import { isAssignmentDone } from "../../../../domain/student-assignments/student-assignment-status.js";
-import type { LessonAssignmentListItem } from "../../../../domain/lessons/lessons.types.js";
+import {
+  ASSIGNMENT_TYPE_MAP,
+  type LessonAssignmentListItem,
+} from "../../../../domain/lessons/lessons.types.js";
 import { copy } from "../helpers/copy.js";
 
 function statusIcon(isDone: boolean) {
@@ -13,7 +16,7 @@ export function lessonAssignmentsKeyboard(items: LessonAssignmentListItem[]) {
   for (const a of items) {
     const done = isAssignmentDone(a.status);
     kb.text(
-      `${statusIcon(done)} ${a.type}`,
+      `${statusIcon(done)} ${ASSIGNMENT_TYPE_MAP[a.type]}`,
       `assignment_open:${a.assignmentId}`,
     ).row();
   }
