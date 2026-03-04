@@ -10,7 +10,6 @@ export type NavScreen =
   | { name: "assignment_question" }
   | { name: "assignment_done" }
   | { name: "assignment_review"; page: number }
-  | { name: "profile" }
   | { name: "help" };
 
 export type AssignmentRunState = {

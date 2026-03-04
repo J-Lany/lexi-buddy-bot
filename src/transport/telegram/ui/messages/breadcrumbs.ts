@@ -47,9 +47,6 @@ export function breadcrumb(
     ]);
   }
 
-  if (screen.name === "profile")
-    return joinCrumbs([home, { title: copy.ui.common.text.profile }]);
-
   if (screen.name === "help")
     return joinCrumbs([home, { title: copy.ui.common.text.help }]);
 

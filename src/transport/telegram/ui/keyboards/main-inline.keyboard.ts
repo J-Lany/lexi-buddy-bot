@@ -5,7 +5,5 @@ export function mainInlineKeyboard() {
   return new InlineKeyboard()
     .text(copy.kb.main.lessons, "nav:lessons")
     .row()
-    .text(copy.kb.main.profile, "nav:profile")
-    .row()
     .text(copy.kb.main.help, "nav:help");
 }

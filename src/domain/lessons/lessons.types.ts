@@ -1,4 +1,5 @@
 import { StudentAssignmentStatus } from "../student-assignments/student-assignment-status.js";
+import type { AssignmentTypes } from "../../infra/backend-api/backend-api.types.js";
 
 export type StudentLessonListItem = {
   lessonId: number;
@@ -9,7 +10,7 @@ export type StudentLessonListItem = {
 
 export type LessonAssignmentListItem = {
   assignmentId: number;
-  type: string;
+  type: AssignmentTypes;
   status: StudentAssignmentStatus;
   score?: number | null;
 };
