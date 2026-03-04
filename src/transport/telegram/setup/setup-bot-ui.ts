@@ -6,7 +6,6 @@ export async function setupBotUi(bot: Bot<BotContext>) {
     [
       { command: "start", description: "🏠 Главное меню" },
       { command: "lessons", description: "📖 Мои уроки" },
-      { command: "profile", description: "👤 Профиль" },
       { command: "help", description: "❓ Помощь" },
     ],
     { scope: { type: "default" } },

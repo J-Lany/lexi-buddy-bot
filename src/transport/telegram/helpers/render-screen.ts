@@ -3,7 +3,6 @@ import type { NavScreen } from "../session.js";
 import type { RenderScreenDeps } from "../screens/types.js";
 
 import { renderHomeScreen } from "../screens/common/home.screen.js";
-import { renderProfileScreen } from "../screens/common/profile.screen.js";
 import { renderHelpScreen } from "../screens/common/help.screen.js";
 
 import { renderLessonsListScreen } from "../screens/lessons/lessons-list.screen.js";
@@ -30,6 +29,5 @@ export async function renderScreen(
   await renderAssignmentDoneScreen(ctx, deps, screen);
   await renderAssignmentReviewScreen(ctx, deps, screen);
 
-  await renderProfileScreen(ctx, deps, screen);
   await renderHelpScreen(ctx, deps, screen);
 }

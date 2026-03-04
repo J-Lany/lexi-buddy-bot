@@ -16,16 +16,6 @@ export function registerCommandsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
     );
   });
 
-  bot.command("profile", async (ctx) => {
-    beginNewScreen(ctx);
-    await goTo(
-      ctx,
-      deps,
-      { name: "profile" },
-      { navMode: "reset", clearAssignmentRun: "always" },
-    );
-  });
-
   bot.command("help", async (ctx) => {
     beginNewScreen(ctx);
     await goTo(

@@ -27,7 +27,6 @@ export const copy = {
       text: {
         menu: "Home",
         lessons: "Lessons",
-        profile: "Profile",
         help: "Help",
         assignment: "Task",
         review: "Review",
@@ -47,23 +46,8 @@ export const copy = {
     help: {
       title: "Help",
       section: "Commands",
-      commands: [
-        "/start — menu",
-        "/lessons — lessons",
-        "/profile — profile",
-        "/help — help",
-      ],
+      commands: ["/start — menu", "/lessons — lessons", "/help — help"],
       hint: "The Menu button near the input field is the fastest way.",
-    },
-
-    profile: {
-      title: "Profile",
-      labels: {
-        name: "Name",
-        username: "Username",
-        level: "Level",
-        age: "Age",
-      },
     },
 
     lessons: {
@@ -290,7 +274,6 @@ export const copy = {
 
     main: {
       lessons: "📖 My lessons",
-      profile: "👤 Profile",
       help: "❓ Help",
     },
 

@@ -17,7 +17,6 @@ function sameScreen(a: NavScreen, b: NavScreen) {
   if (a.name !== b.name) return false;
 
   if (a.name === "home" && b.name === "home") return true;
-  if (a.name === "profile" && b.name === "profile") return true;
   if (a.name === "help" && b.name === "help") return true;
 
   if (a.name === "lessons_list" && b.name === "lessons_list") {
