@@ -1,4 +1,5 @@
 import { StudentAssignmentStatus } from "../../domain/student-assignments/student-assignment-status.js";
+import { ASSIGNMENT_TYPE_MAP } from "./backend-api.maps.js";
 
 export type GetStudentProfileResponse = {
   firstName?: string | null;
@@ -19,10 +20,12 @@ export type GetStudentLessonsResponse = {
   }>;
 };
 
+export type AssignmentTypes = keyof typeof ASSIGNMENT_TYPE_MAP;
+
 export type GetLessonAssignmentsResponse = {
   items: Array<{
     assignmentId: number;
-    type: string;
+    type: AssignmentTypes;
     status: StudentAssignmentStatus;
     score?: number | null;
   }>;

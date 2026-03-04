@@ -1,4 +1,5 @@
 import { StudentAssignmentStatus } from "../student-assignments/student-assignment-status.js";
+import type { AssignmentTypes } from "../../infra/backend-api/backend-api.types.js";
 
 export type StudentLessonListItem = {
   lessonId: number;
@@ -6,15 +7,6 @@ export type StudentLessonListItem = {
   level?: string | null;
   topic?: string | null;
 };
-
-export const ASSIGNMENT_TYPE_MAP = {
-  definition_quiz: "Definition Quiz",
-  gap_filling: "Gap Filling",
-  phrase_fail: "Phrase Fail",
-  collocation_check: "Collocation Check",
-} as const;
-
-export type AssignmentTypes = keyof typeof ASSIGNMENT_TYPE_MAP;
 
 export type LessonAssignmentListItem = {
   assignmentId: number;
