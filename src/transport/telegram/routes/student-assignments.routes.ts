@@ -2,6 +2,7 @@ import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
 import type { RoutesDeps } from "./routes.deps.js";
 
+import { safeEditScreen } from "../helpers/safe-edit-screen.js";
 import { navPeek, navPush, navReplaceTop } from "../helpers/nav.js";
 import { renderScreen } from "../helpers/render-screen.js";
 import { sendChat } from "../helpers/send-chat.js";
@@ -16,6 +17,7 @@ export function registerStudentAssignmentsRoutes(
   deps: RoutesDeps,
 ) {
   const flow = new AssignmentRunFlow();
+  const beginInFlight = new Set<string>();
 
   async function advanceOrSubmit(ctx: BotContext) {
     const run = ctx.session.assignmentRun;
@@ -50,12 +52,26 @@ export function registerStudentAssignmentsRoutes(
     const current = navPeek(ctx);
     if (!current || current.name !== "assignment_intro") return;
 
-    await flow.begin(ctx, deps, current.assignmentId);
+    const key = `${telegramId}:${current.assignmentId}`;
+    if (beginInFlight.has(key)) return;
 
-    navReplaceTop(ctx, { name: "assignment_question" });
-    await renderScreen(ctx, deps, { name: "assignment_question" });
+    beginInFlight.add(key);
+
+    try {
+      await flow.begin(ctx, deps, current.assignmentId);
+
+      navReplaceTop(ctx, { name: "assignment_question" });
+      await renderScreen(ctx, deps, { name: "assignment_question" });
+    } catch (e) {
+      console.error("[assignment_begin] failed", e);
+      await safeEditScreen(
+        ctx,
+        "⚠️ Не удалось начать задание. Попробуй позже.",
+      );
+    } finally {
+      beginInFlight.delete(key);
+    }
   });
-
   bot.callbackQuery(/^assignment_choose:.+$/, async (ctx) => {
     await ack(ctx);
 

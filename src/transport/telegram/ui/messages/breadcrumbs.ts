@@ -1,5 +1,6 @@
 import type { NavScreen } from "../../session.js";
 import { copy } from "../helpers/copy.js";
+import { escapeHtml } from "../helpers/html.js";
 
 export type BreadcrumbMeta = {
   lessonTitle?: string | null;
@@ -9,7 +10,7 @@ export type BreadcrumbMeta = {
 type Crumb = { title: string };
 
 function joinCrumbs(crumbs: Crumb[]) {
-  return `<i>${crumbs.map((c) => c.title).join("  ›  ")}</i>`;
+  return `<i>${crumbs.map((c) => escapeHtml(c.title)).join("  ›  ")}</i>`;
 }
 
 export function breadcrumb(

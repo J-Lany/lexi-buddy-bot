@@ -1,5 +1,6 @@
 import { uiMessage } from "../../helpers/ui.js";
 import { copy } from "../../helpers/copy.js";
+import { escapeHtml } from "../../helpers/html.js";
 import {
   isChoiceQuestion,
   isTextQuestion,
@@ -25,14 +26,17 @@ export function assignmentFeedbackMessage(params: {
   } = params;
 
   const lines: Array<string | null> = [];
+  const safeExplanation = explanation?.trim()
+    ? escapeHtml(explanation.trim())
+    : null;
 
   if (correct) {
     lines.push(copy.ui.assignment.feedback.correct);
 
-    if (explanation?.trim()) {
+    if (safeExplanation) {
       lines.push("");
       lines.push(copy.ui.assignment.feedback.explanationTitle);
-      lines.push(explanation.trim());
+      lines.push(safeExplanation);
     }
 
     return uiMessage(lines);
@@ -46,10 +50,10 @@ export function assignmentFeedbackMessage(params: {
       lines.push(copy.ui.assignment.feedback.correctAnswer(correctAnswerText));
     }
 
-    if (explanation?.trim()) {
+    if (safeExplanation) {
       lines.push("");
       lines.push(copy.ui.assignment.feedback.explanationTitle);
-      lines.push(explanation.trim());
+      lines.push(safeExplanation);
     }
 
     return uiMessage(lines);
@@ -72,10 +76,10 @@ export function assignmentFeedbackMessage(params: {
       lines.push(copy.ui.assignment.feedback.correctAnswer(correctAnswerText));
     }
 
-    if (explanation?.trim()) {
+    if (safeExplanation) {
       lines.push("");
       lines.push(copy.ui.assignment.feedback.explanationTitle);
-      lines.push(explanation.trim());
+      lines.push(safeExplanation);
     }
 
     return uiMessage(lines);
