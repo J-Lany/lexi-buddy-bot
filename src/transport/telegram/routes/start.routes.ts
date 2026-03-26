@@ -12,6 +12,7 @@ import { safeEditScreen } from "../helpers/safe-edit-screen.js";
 import type { RoutesDeps } from "./routes.deps.js";
 import { goTo } from "../helpers/go-to.js";
 import { copy } from "../ui/helpers/copy.js";
+import { clearAssignmentRun } from "../helpers/clear-assignment-run.js";
 
 export function registerStartRoutes(
   bot: Bot<BotContext>,
@@ -23,45 +24,67 @@ export function registerStartRoutes(
     const from = ctx.from;
     if (!from) return;
 
-    beginNewScreen(ctx);
-
-    const profile = {
-      telegramId: from.id,
-      username: from.username ?? null,
-      firstName: from.first_name,
-      lastName: from.last_name ?? null,
-    };
-
-    await safeEditScreen(ctx, copy.ui.common.loading);
-
-    const view = await deps.home.getStartView(profile);
-
-    if (view.type === "NEED_REG") {
-      ctx.session.reg = { draft: profile };
-
-      await safeEditScreen(ctx, startNeedRegMessage(profile.firstName), {
-        reply_markup: startRegistrationKeyboard(),
+    try {
+      console.log("[/start] incoming", {
+        fromId: from.id,
+        chatId: ctx.chat?.id,
+        username: from.username ?? null,
       });
-      return;
-    }
 
-    if (view.type === "REGISTERED_NO_TEACHER") {
-      ctx.session.ui.bannerText = startRegisteredNoTeacherMessage();
+      beginNewScreen(ctx);
+      delete ctx.session.reg;
+      clearAssignmentRun(ctx);
+      ctx.session.nav.stack = [{ name: "home" }];
+
+      const profile = {
+        telegramId: from.id,
+        username: from.username ?? null,
+        firstName: from.first_name,
+        lastName: from.last_name ?? null,
+      };
+
+      await safeEditScreen(ctx, copy.ui.common.loading);
+
+      const view = await deps.home.getStartView(profile);
+
+      console.log("[/start] view", {
+        telegramId: profile.telegramId,
+        view: view.type,
+      });
+
+      if (view.type === "NEED_REG") {
+        ctx.session.reg = { draft: profile };
+
+        await safeEditScreen(ctx, startNeedRegMessage(profile.firstName), {
+          reply_markup: startRegistrationKeyboard(),
+        });
+        return;
+      }
+
+      if (view.type === "REGISTERED_NO_TEACHER") {
+        ctx.session.ui.bannerText = startRegisteredNoTeacherMessage();
+        await goTo(
+          ctx,
+          deps,
+          { name: "home" },
+          { navMode: "reset", clearAssignmentRun: "always" },
+        );
+        return;
+      }
+
+      ctx.session.ui.bannerText = startActiveStudentMessage(profile.firstName);
       await goTo(
         ctx,
         deps,
         { name: "home" },
         { navMode: "reset", clearAssignmentRun: "always" },
       );
-      return;
+    } catch (e) {
+      console.error("[/start] failed", e);
+      await safeEditScreen(
+        ctx,
+        "⚠️ Не удалось открыть стартовый экран. Попробуй позже.",
+      );
     }
-
-    ctx.session.ui.bannerText = startActiveStudentMessage(profile.firstName);
-    await goTo(
-      ctx,
-      deps,
-      { name: "home" },
-      { navMode: "reset", clearAssignmentRun: "always" },
-    );
   });
 }

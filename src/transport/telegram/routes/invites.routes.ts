@@ -7,7 +7,6 @@ import {
   InviteNotFoundError,
 } from "../../../domain/invites/invites.errors.js";
 
-import { withLoadingScreen } from "../helpers/with-loading.js";
 import { ack } from "../helpers/ack.js";
 import { copy } from "../ui/helpers/copy.js";
 import { safeEditCallbackMessage } from "../helpers/safe-edit-callback-message.js";
@@ -43,17 +42,15 @@ export function registerInvitesRoutes(
 
     const key = `${telegramId}:${inviteId}`;
     if (inFlight.has(key)) {
-      await ctx
-        .answerCallbackQuery({ text: copy.ui.invites.inFlight })
-        .catch(() => {});
+      await ack(ctx, copy.ui.invites.inFlight);
       return;
     }
 
     inFlight.add(key);
+    await ack(ctx);
+
     try {
-      await withLoadingScreen(ctx, () =>
-        invites.respond({ inviteId, telegramId, accept }),
-      );
+      await invites.respond({ inviteId, telegramId, accept });
 
       await safeEditCallbackMessage(ctx, successText(accept), {
         reply_markup: { inline_keyboard: [] },

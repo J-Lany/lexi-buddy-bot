@@ -2,12 +2,26 @@ import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
 
 import type { RegistrationService } from "../../../domain/registration/registration.service.js";
+import type { RegistrationDraft } from "../../../domain/registration/registration.types.js";
 
 import { safeEditScreen } from "../helpers/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
 import { ack } from "../helpers/ack.js";
 import { copy } from "../ui/helpers/copy.js";
+import { startRegistrationKeyboard } from "../ui/keyboards/registration.keyboard.js";
+
+function buildDraftFromContext(ctx: BotContext): RegistrationDraft | null {
+  const from = ctx.from;
+  if (!from) return null;
+
+  return {
+    telegramId: from.id,
+    username: from.username ?? null,
+    firstName: from.first_name,
+    lastName: from.last_name ?? null,
+  };
+}
 
 export function registerRegistrationRoutes(
   bot: Bot<BotContext>,
@@ -25,18 +39,25 @@ export function registerRegistrationRoutes(
 
     beginNewScreen(ctx);
 
-    await safeEditScreen(ctx, copy.ui.registration.inProgress);
+    await safeEditScreen(ctx, copy.ui.registration.inProgress, {
+      reply_markup: startRegistrationKeyboard(),
+    });
   });
 
   bot.callbackQuery("reg_begin", async (ctx) => {
-    const reg = ctx.session.reg;
-    if (!reg) {
-      await ack(ctx);
+    await ack(ctx);
+
+    const draft = ctx.session.reg?.draft ?? buildDraftFromContext(ctx);
+    if (!draft) {
+      await safeEditScreen(
+        ctx,
+        "⚠️ Не удалось восстановить регистрацию. Нажми /start ещё раз.",
+      );
       return;
     }
 
     try {
-      await withLoadingScreen(ctx, () => regService.register(reg.draft));
+      await withLoadingScreen(ctx, () => regService.register(draft));
       delete ctx.session.reg;
 
       await safeEditScreen(ctx, copy.ui.registration.success);

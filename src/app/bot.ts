@@ -18,6 +18,18 @@ import type { Container } from "./container.js";
 export function createBot(container: Container) {
   const bot = new Bot<BotContext>(env.telegramBotToken);
 
+  bot.use(async (ctx, next) => {
+    console.log("[update]", {
+      updateId: ctx.update.update_id,
+      fromId: ctx.from?.id,
+      chatId: ctx.chat?.id,
+      text: ctx.msg?.text,
+      callbackData: ctx.callbackQuery?.data,
+    });
+
+    await next();
+  });
+
   setupSessionMiddleware(bot);
   setupErrorHandler(bot);
 
