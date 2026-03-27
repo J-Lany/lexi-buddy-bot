@@ -1,5 +1,8 @@
+import type { Server } from "node:http";
 import os from "node:os";
+
 import { env } from "../config/env.js";
+import { logError, logInfo, logWarn } from "../observability/logger.js";
 
 import { createContainer } from "./container.js";
 import { createBot } from "./bot.js";
@@ -10,27 +13,39 @@ import { LessonAssignedNotificationSender } from "../transport/telegram/notifica
 
 let isShuttingDown = false;
 
-function fatalExit(label: string, payload: unknown) {
-  console.error(label, payload);
+function fatalExit(event: string, payload: unknown) {
+  logError(event, payload);
   process.exit(1);
 }
 
+function closeServer(server: Server) {
+  return new Promise<void>((resolve, reject) => {
+    server.close((err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
 process.on("unhandledRejection", (reason) => {
-  fatalExit("[process] unhandledRejection", reason);
+  fatalExit("process_unhandled_rejection", reason);
 });
 
 process.on("uncaughtException", (error) => {
-  fatalExit("[process] uncaughtException", error);
+  fatalExit("process_uncaught_exception", error);
 });
 
 async function main() {
-  console.log("[boot] starting app", {
+  logInfo("boot_starting_app", {
     pid: process.pid,
     host: os.hostname(),
-    tokenTail: env.telegramBotToken.slice(-6),
-    backendBaseUrl: env.backendBaseUrl,
-    internalPort: env.internalPort,
-    startedAt: new Date().toISOString(),
+    token_tail: env.telegramBotToken.slice(-6),
+    backend_base_url: env.backendBaseUrl,
+    internal_port: env.internalPort,
+    started_at: new Date().toISOString(),
   });
 
   const container = createContainer();
@@ -38,47 +53,67 @@ async function main() {
 
   process.once("SIGINT", () => {
     isShuttingDown = true;
-    console.log("[boot] SIGINT received, stopping bot...");
-    bot.stop();
-    process.exit(0);
+    logInfo("signal_received", { signal: "SIGINT" });
+    void bot.stop();
   });
 
   process.once("SIGTERM", () => {
     isShuttingDown = true;
-    console.log("[boot] SIGTERM received, stopping bot...");
-    bot.stop();
-    process.exit(0);
+    logInfo("signal_received", { signal: "SIGTERM" });
+    void bot.stop();
   });
+
+  logInfo("telegram_api_check_started");
+  const me = await bot.api.getMe();
+  logInfo("telegram_api_check_succeeded", {
+    bot_id: me.id,
+    bot_username: me.username ?? null,
+  });
+
+  void setupBotUi(bot)
+    .then(() => {
+      logInfo("bot_commands_updated");
+    })
+    .catch((err) => {
+      logWarn("bot_commands_update_failed", {
+        message: err instanceof Error ? err.message : String(err),
+      });
+    });
 
   const teacherRequestNotifier = new TeacherRequestNotificationSender(bot);
   const lessonAssignedNotifier = new LessonAssignedNotificationSender(bot);
 
-  startInternalHttpServer({ teacherRequestNotifier, lessonAssignedNotifier });
-  console.log("[boot] internal http server started");
+  const internalHttpServer = startInternalHttpServer({
+    teacherRequestNotifier,
+    lessonAssignedNotifier,
+  });
 
-  void setupBotUi(bot)
-    .then(() => {
-      console.log("[boot] bot commands updated");
-    })
-    .catch((err) => {
-      console.error("[boot] setupBotUi failed", err);
-    });
-
-  console.log("[boot] starting telegram polling...");
+  logInfo("telegram_polling_starting");
 
   try {
     await bot.start();
 
-    if (!isShuttingDown) {
-      fatalExit("[boot] telegram polling stopped unexpectedly", null);
+    if (isShuttingDown) {
+      await closeServer(internalHttpServer);
+      logInfo("internal_http_server_stopped");
+      logInfo("shutdown_complete");
+      return;
     }
+
+    fatalExit("telegram_polling_stopped_unexpectedly", null);
   } catch (err) {
+    try {
+      await closeServer(internalHttpServer);
+    } catch (closeErr) {
+      logError("internal_http_server_stop_failed", closeErr);
+    }
+
     if (!isShuttingDown) {
-      fatalExit("[boot] telegram polling failed", err);
+      fatalExit("telegram_polling_failed", err);
     }
   }
 }
 
 main().catch((err) => {
-  fatalExit("[boot] fatal startup error", err);
+  fatalExit("boot_fatal_startup_error", err);
 });

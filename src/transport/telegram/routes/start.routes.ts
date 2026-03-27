@@ -1,6 +1,7 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
 import type { StudentHomeService } from "../../../domain/student-home/student-home.service.js";
+
 import { startRegistrationKeyboard } from "../ui/keyboards/registration.keyboard.js";
 import {
   startActiveStudentMessage,
@@ -14,6 +15,9 @@ import { goTo } from "../helpers/go-to.js";
 import { copy } from "../ui/helpers/copy.js";
 import { clearAssignmentRun } from "../helpers/clear-assignment-run.js";
 
+import { logError, logInfo } from "../../../observability/logger.js";
+import { setRequestUserId } from "../../../observability/request-context.js";
+
 export function registerStartRoutes(
   bot: Bot<BotContext>,
   deps: RoutesDeps & {
@@ -25,16 +29,11 @@ export function registerStartRoutes(
     if (!from) return;
 
     try {
-      console.log("[/start] incoming", {
-        fromId: from.id,
-        chatId: ctx.chat?.id,
-        username: from.username ?? null,
-      });
-
       beginNewScreen(ctx);
       delete ctx.session.reg;
       clearAssignmentRun(ctx);
       ctx.session.nav.stack = [{ name: "home" }];
+      ctx.session.userId = null;
 
       const profile = {
         telegramId: from.id,
@@ -47,12 +46,14 @@ export function registerStartRoutes(
 
       const view = await deps.home.getStartView(profile);
 
-      console.log("[/start] view", {
-        telegramId: profile.telegramId,
-        view: view.type,
-      });
-
       if (view.type === "NEED_REG") {
+        ctx.session.userId = null;
+        setRequestUserId(null);
+
+        logInfo("start_view_resolved", {
+          view: view.type,
+        });
+
         ctx.session.reg = { draft: profile };
 
         await safeEditScreen(ctx, startNeedRegMessage(profile.firstName), {
@@ -60,6 +61,13 @@ export function registerStartRoutes(
         });
         return;
       }
+
+      ctx.session.userId = view.userId;
+      setRequestUserId(view.userId);
+
+      logInfo("start_view_resolved", {
+        view: view.type,
+      });
 
       if (view.type === "REGISTERED_NO_TEACHER") {
         ctx.session.ui.bannerText = startRegisteredNoTeacherMessage();
@@ -80,7 +88,7 @@ export function registerStartRoutes(
         { navMode: "reset", clearAssignmentRun: "always" },
       );
     } catch (e) {
-      console.error("[/start] failed", e);
+      logError("start_failed", e);
       await safeEditScreen(
         ctx,
         "⚠️ Не удалось открыть стартовый экран. Попробуй позже.",

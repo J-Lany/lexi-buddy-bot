@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import type { BotContext } from "../../transport/telegram/context.js";
-
+import { logError, logInfo } from "../../observability/logger.js";
 import { clearAssignmentRun } from "../../transport/telegram/helpers/clear-assignment-run.js";
 import type { RenderDeps } from "../../transport/telegram/helpers/render-screen.js";
 import { navReplaceTop } from "../../transport/telegram/helpers/nav.js";
@@ -295,10 +295,22 @@ export class AssignmentRunFlow {
       ctx.session.assignmentSubmittedAt = Date.now();
       ctx.session.assignmentSubmitError = null;
 
+      logInfo("assignment_completed", {
+        assignmentId: run.assignmentId,
+        type: run.assignment.type ?? null,
+        status: res.status ?? null,
+      });
+
       navReplaceTop(ctx, { name: "assignment_done" });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Submit failed";
       ctx.session.assignmentSubmitError = { message };
+
+      logError("assignment_submit_failed", e, {
+        assignmentId: run.assignmentId,
+        type: run.assignment.type ?? null,
+      });
+
       navReplaceTop(ctx, { name: "assignment_done" });
     } finally {
       run.submitInFlight = false;

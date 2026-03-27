@@ -1,5 +1,16 @@
-import axios, { type AxiosInstance } from "axios";
+import axios, {
+  AxiosHeaders,
+  type AxiosInstance,
+  type InternalAxiosRequestConfig,
+} from "axios";
+
 import { env } from "../../config/env.js";
+import { logError, logInfo } from "../../observability/logger.js";
+import {
+  getRequestId,
+  setRequestUserId,
+} from "../../observability/request-context.js";
+
 import type { RegistrationDraft } from "../../domain/registration/registration.types.js";
 
 import {
@@ -20,6 +31,26 @@ import type {
 
 import { toBackendApiError } from "./backend-api.error-mapper.js";
 
+type TelegramUserLookupResponse = {
+  id: number;
+  username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  level?: string | null;
+  ageGroup?: string | null;
+  roleId?: number | null;
+  verified?: boolean;
+};
+
+type RequestMeta = {
+  startedAt: number;
+  requestId: string;
+};
+
+type RequestConfigWithMeta = InternalAxiosRequestConfig & {
+  metadata?: RequestMeta;
+};
+
 export class BackendApiService {
   private readonly http: AxiosInstance;
 
@@ -33,14 +64,78 @@ export class BackendApiService {
       this.http.defaults.headers.common["x-internal-token"] =
         env.telegramBotInternalToken;
     }
+
+    this.setupInterceptors();
   }
 
-  async getByTelegramId(telegramId: number) {
+  private setupInterceptors() {
+    this.http.interceptors.request.use((config) => {
+      const cfg = config as RequestConfigWithMeta;
+      const requestId = getRequestId();
+
+      cfg.metadata = {
+        startedAt: Date.now(),
+        requestId,
+      };
+
+      const headers = AxiosHeaders.from(cfg.headers);
+      headers.set("x-request-id", requestId);
+      cfg.headers = headers;
+
+      return cfg;
+    });
+
+    this.http.interceptors.response.use(
+      (response) => {
+        const cfg = response.config as RequestConfigWithMeta;
+        const durationMs = cfg.metadata?.startedAt
+          ? Date.now() - cfg.metadata.startedAt
+          : null;
+
+        logInfo("backend_call_completed", {
+          request_id: cfg.metadata?.requestId ?? null,
+          backend_method: (cfg.method ?? "GET").toUpperCase(),
+          backend_path: cfg.url ?? null,
+          status_code: response.status,
+          duration_ms: durationMs,
+        });
+
+        if (
+          cfg.url?.startsWith("/auth/by-telegram") &&
+          typeof response.data?.id === "number"
+        ) {
+          setRequestUserId(response.data.id);
+        }
+
+        return response;
+      },
+      (error) => {
+        const cfg = (error.config ?? {}) as RequestConfigWithMeta;
+        const durationMs = cfg.metadata?.startedAt
+          ? Date.now() - cfg.metadata.startedAt
+          : null;
+
+        logError("backend_call_failed", error, {
+          request_id: cfg.metadata?.requestId ?? getRequestId(),
+          backend_method: (cfg.method ?? "GET").toUpperCase(),
+          backend_path: cfg.url ?? null,
+          status_code: error.response?.status ?? null,
+          duration_ms: durationMs,
+        });
+
+        return Promise.reject(error);
+      },
+    );
+  }
+
+  async getByTelegramId(
+    telegramId: number,
+  ): Promise<TelegramUserLookupResponse | null> {
     try {
       const res = await this.http.get("/auth/by-telegram", {
         params: { telegramId },
       });
-      return res.data;
+      return res.data as TelegramUserLookupResponse;
     } catch (e: unknown) {
       if (axios.isAxiosError(e) && e.response?.status === 404) return null;
       throw toBackendApiError(

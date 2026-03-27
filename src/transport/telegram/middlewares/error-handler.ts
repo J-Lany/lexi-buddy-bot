@@ -1,15 +1,15 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
+import { logError } from "../../../observability/logger.js";
 
 export function setupErrorHandler(bot: Bot<BotContext>) {
   bot.catch((err) => {
-    console.error("[bot.catch] error", {
-      error: err.error,
-      update: err.ctx?.update,
-      chatId: err.ctx?.chat?.id,
-      fromId: err.ctx?.from?.id,
-      text: err.ctx?.msg?.text,
-      callbackData: err.ctx?.callbackQuery?.data,
+    logError("bot_middleware_error", err.error, {
+      telegram_user_id: err.ctx?.from?.id ?? null,
+      update_id: err.ctx?.update.update_id ?? null,
+      chat_id: err.ctx?.chat?.id ?? null,
+      text: err.ctx?.msg?.text ?? null,
+      callback_data: err.ctx?.callbackQuery?.data ?? null,
     });
   });
 }
