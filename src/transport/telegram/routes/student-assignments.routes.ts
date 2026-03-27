@@ -11,6 +11,9 @@ import { goTo } from "../helpers/go-to.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
 
 import { AssignmentRunFlow } from "../../../application/assignment-run/assignment-run.flow.js";
+import { logError, logInfo } from "../../../observability/logger.js";
+
+const STALE_ASSIGNMENT_TEXT = "Экран устарел. Открой задание заново.";
 
 export function registerStudentAssignmentsRoutes(
   bot: Bot<BotContext>,
@@ -44,26 +47,39 @@ export function registerStudentAssignmentsRoutes(
   }
 
   bot.callbackQuery("assignment_begin", async (ctx) => {
-    await ack(ctx);
-
     const telegramId = ctx.from?.id;
-    if (!telegramId) return;
-
     const current = navPeek(ctx);
-    if (!current || current.name !== "assignment_intro") return;
+
+    if (!telegramId || !current || current.name !== "assignment_intro") {
+      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
 
     const key = `${telegramId}:${current.assignmentId}`;
-    if (beginInFlight.has(key)) return;
+    if (beginInFlight.has(key)) {
+      await ack(ctx, "Уже запускаю задание…");
+      return;
+    }
 
     beginInFlight.add(key);
+    await ack(ctx);
 
     try {
       await flow.begin(ctx, deps, current.assignmentId);
 
+      const run = ctx.session.assignmentRun;
+      logInfo("assignment_started", {
+        assignmentId: current.assignmentId,
+        type: run?.assignment.type ?? null,
+      });
+
       navReplaceTop(ctx, { name: "assignment_question" });
       await renderScreen(ctx, deps, { name: "assignment_question" });
     } catch (e) {
-      console.error("[assignment_begin] failed", e);
+      logError("assignment_begin_failed", e, {
+        assignmentId: current.assignmentId,
+      });
+
       await safeEditScreen(
         ctx,
         "⚠️ Не удалось начать задание. Попробуй позже.",
@@ -72,12 +88,14 @@ export function registerStudentAssignmentsRoutes(
       beginInFlight.delete(key);
     }
   });
-  bot.callbackQuery(/^assignment_choose:.+$/, async (ctx) => {
-    await ack(ctx);
 
+  bot.callbackQuery(/^assignment_choose:.+$/, async (ctx) => {
     const data = ctx.callbackQuery.data;
     const m = /^assignment_choose:([^:]+):(\d+):(\d+)$/.exec(data);
-    if (!m) return;
+    if (!m) {
+      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
 
     const sessionId = m[1];
     const questionId = Number(m[2]);
@@ -89,7 +107,12 @@ export function registerStudentAssignmentsRoutes(
       ...(sessionId ? { sessionId } : {}),
     });
 
-    if (!ok) return;
+    if (!ok) {
+      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
+
+    await ack(ctx);
 
     const fb = flow.takeFeedback(ctx);
     if (fb) await sendChat(ctx, fb.text);
@@ -102,8 +125,9 @@ export function registerStudentAssignmentsRoutes(
     if (!current || current.name !== "assignment_question") return next();
 
     const run = ctx.session.assignmentRun;
-    if (!run || run.submitted || run.startInFlight || run.submitInFlight)
+    if (!run || run.submitted || run.startInFlight || run.submitInFlight) {
       return;
+    }
 
     const ok = await flow.answerText(ctx, ctx.message.text);
     if (!ok) return;
@@ -117,6 +141,12 @@ export function registerStudentAssignmentsRoutes(
   });
 
   bot.callbackQuery("assignment_submit_retry", async (ctx) => {
+    const run = ctx.session.assignmentRun;
+    if (!run) {
+      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
+
     await ack(ctx);
 
     await flow.submit(ctx, deps);
@@ -126,23 +156,32 @@ export function registerStudentAssignmentsRoutes(
   });
 
   bot.callbackQuery("assignment_review", async (ctx) => {
-    await ack(ctx);
-
     const run = ctx.session.assignmentRun;
-    if (!run || !run.submitted) return;
+    if (!run || !run.submitted) {
+      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
+
+    await ack(ctx);
 
     navPush(ctx, { name: "assignment_review", page: 0 });
     await renderScreen(ctx, deps, { name: "assignment_review", page: 0 });
   });
 
   bot.callbackQuery(/^assignment_review_page:\d+$/, async (ctx) => {
-    await ack(ctx);
-
     const run = ctx.session.assignmentRun;
-    if (!run || !run.submitted) return;
+    if (!run || !run.submitted) {
+      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
 
     const m = /^assignment_review_page:(\d+)$/.exec(ctx.callbackQuery.data);
-    if (!m) return;
+    if (!m) {
+      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
+
+    await ack(ctx);
 
     const page = Number(m[1]);
 
@@ -151,10 +190,19 @@ export function registerStudentAssignmentsRoutes(
   });
 
   bot.callbackQuery("assignment_to_lesson", async (ctx) => {
+    const run = ctx.session.assignmentRun;
+    if (!run) {
+      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
+
     await ack(ctx);
 
     const lessonId = flow.finishToLesson(ctx);
-    if (lessonId === null) return;
+    if (lessonId === null) {
+      await sendChat(ctx, STALE_ASSIGNMENT_TEXT);
+      return;
+    }
 
     beginNewScreen(ctx);
     await goTo(

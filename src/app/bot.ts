@@ -1,4 +1,5 @@
 import { Bot } from "grammy";
+import { autoRetry } from "@grammyjs/auto-retry";
 import { env } from "../config/env.js";
 
 import type { BotContext } from "../transport/telegram/context.js";
@@ -13,24 +14,46 @@ import { registerProfileRoutes } from "../transport/telegram/routes/profile.rout
 import { registerCommandsRoutes } from "../transport/telegram/routes/commands.routes.js";
 import { registerStudentAssignmentsRoutes } from "../transport/telegram/routes/student-assignments.routes.js";
 
+import { logInfo } from "../observability/logger.js";
+import { runWithRequestContext } from "../observability/request-context.js";
+
 import type { Container } from "./container.js";
 
 export function createBot(container: Container) {
-  const bot = new Bot<BotContext>(env.telegramBotToken);
-
-  bot.use(async (ctx, next) => {
-    console.log("[update]", {
-      updateId: ctx.update.update_id,
-      fromId: ctx.from?.id,
-      chatId: ctx.chat?.id,
-      text: ctx.msg?.text,
-      callbackData: ctx.callbackQuery?.data,
-    });
-
-    await next();
+  const bot = new Bot<BotContext>(env.telegramBotToken, {
+    client: {
+      timeoutSeconds: 20,
+      sensitiveLogs: env.nodeEnv === "development",
+    },
   });
 
+  bot.api.config.use(
+    autoRetry({
+      maxRetryAttempts: 2,
+      maxDelaySeconds: 10,
+    }),
+  );
+
   setupSessionMiddleware(bot);
+
+  bot.use(async (ctx, next) => {
+    return await runWithRequestContext(
+      {
+        updateId: ctx.update.update_id ?? null,
+        telegramUserId: ctx.from?.id ?? null,
+        userId: ctx.session.userId ?? null,
+      },
+      async () => {
+        logInfo("update_received", {
+          text: ctx.msg?.text ?? null,
+          callback_data: ctx.callbackQuery?.data ?? null,
+        });
+
+        await next();
+      },
+    );
+  });
+
   setupErrorHandler(bot);
 
   const deps = {

@@ -7,6 +7,7 @@ export function setupSessionMiddleware(bot: Bot<BotContext>) {
   bot.use(
     session<SessionData, BotContext>({
       initial: (): SessionData => ({
+        userId: null,
         nav: { stack: [{ name: "home" }] },
         ui: {},
         assignmentRun: null,

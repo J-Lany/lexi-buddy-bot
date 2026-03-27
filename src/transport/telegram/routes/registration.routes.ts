@@ -10,6 +10,7 @@ import { beginNewScreen } from "../helpers/begin-new-screen.js";
 import { ack } from "../helpers/ack.js";
 import { copy } from "../ui/helpers/copy.js";
 import { startRegistrationKeyboard } from "../ui/keyboards/registration.keyboard.js";
+import { setRequestUserId } from "../../../observability/request-context.js";
 
 function buildDraftFromContext(ctx: BotContext): RegistrationDraft | null {
   const from = ctx.from;
@@ -31,6 +32,9 @@ export function registerRegistrationRoutes(
     beginNewScreen(ctx);
 
     delete ctx.session.reg;
+    ctx.session.userId = null;
+    setRequestUserId(null);
+
     await safeEditScreen(ctx, copy.ui.registration.cancelOk);
   });
 
@@ -58,6 +62,11 @@ export function registerRegistrationRoutes(
 
     try {
       await withLoadingScreen(ctx, () => regService.register(draft));
+
+      const user = await regService.findByTelegramId(draft.telegramId);
+      ctx.session.userId = user?.id ?? null;
+      setRequestUserId(user?.id ?? null);
+
       delete ctx.session.reg;
 
       await safeEditScreen(ctx, copy.ui.registration.success);
@@ -75,6 +84,8 @@ export function registerRegistrationRoutes(
 
   bot.callbackQuery("reg_cancel", async (ctx) => {
     delete ctx.session.reg;
+    ctx.session.userId = null;
+    setRequestUserId(null);
 
     await ctx
       .answerCallbackQuery({ text: copy.ui.registration.callbackOk })
