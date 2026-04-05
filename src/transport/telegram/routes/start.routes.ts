@@ -9,7 +9,7 @@ import {
   startRegisteredNoTeacherMessage,
 } from "../ui/messages/start.messages.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
-import { safeEditScreen } from "../helpers/safe-edit-screen.js";
+import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import type { RoutesDeps } from "./routes.deps.js";
 import { goTo } from "../helpers/go-to.js";
 import { copy } from "../ui/helpers/copy.js";

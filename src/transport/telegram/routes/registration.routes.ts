@@ -4,13 +4,14 @@ import type { BotContext } from "../context.js";
 import type { RegistrationService } from "../../../domain/registration/registration.service.js";
 import type { RegistrationDraft } from "../../../domain/registration/registration.types.js";
 
-import { safeEditScreen } from "../helpers/safe-edit-screen.js";
+import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
 import { ack } from "../helpers/ack.js";
 import { copy } from "../ui/helpers/copy.js";
 import { startRegistrationKeyboard } from "../ui/keyboards/registration.keyboard.js";
 import { setRequestUserId } from "../../../observability/request-context.js";
+import { escapeHtml } from "../ui/helpers/html.js";
 
 function buildDraftFromContext(ctx: BotContext): RegistrationDraft | null {
   const from = ctx.from;
@@ -76,7 +77,7 @@ export function registerRegistrationRoutes(
       await safeEditScreen(ctx, copy.ui.registration.failed);
 
       await ctx.reply(
-        `${copy.ui.registration.reasonPrefix} ${msg}\n\n${copy.ui.registration.tryAgain}`,
+        `${copy.ui.registration.reasonPrefix} ${escapeHtml(msg)}\n\n${copy.ui.registration.tryAgain}`,
         { parse_mode: "HTML" },
       );
     }

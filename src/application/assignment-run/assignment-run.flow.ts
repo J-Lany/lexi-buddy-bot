@@ -4,14 +4,16 @@ import { logError, logInfo } from "../../observability/logger.js";
 import { clearAssignmentRun } from "../../transport/telegram/helpers/clear-assignment-run.js";
 import type { RenderDeps } from "../../transport/telegram/helpers/render-screen.js";
 import { navReplaceTop } from "../../transport/telegram/helpers/nav.js";
-
+import {
+  maxAttemptsForQuestionType,
+  showCorrectOnAttemptForQuestionType,
+} from "../../domain/assignment-run/attempts.policy.js";
 import { assignmentFeedbackMessage } from "../../transport/telegram/ui/messages/assignments/assignment-feedback.message.js";
 
 import {
   isTextQuestion,
   isChoiceQuestion,
 } from "../../domain/assignment-run/question.type.js";
-import { maxAttemptsForQuestionType } from "../../domain/assignment-run/attempts.policy.js";
 import { getCorrectAnswerText } from "../../domain/assignment-run/correct-answer.js";
 import { isCorrectTextAnswer } from "../../domain/assignment-run/answer.check.js";
 import { shuffled } from "../../domain/assignment-run/shuffle.js";
@@ -104,7 +106,7 @@ export class AssignmentRunFlow {
 
     const isCorrect = Boolean(chosen.isCorrect);
     const correctText = getCorrectAnswerText(q);
-    const maxAttempts = maxAttemptsForQuestionType(qType);
+    const maxAttempts = maxAttemptsForQuestionType(qType, run.attemptsPolicy);
 
     run.results[params.questionId] ??= { attempts: [] };
     run.results[params.questionId]?.attempts.push({
@@ -144,7 +146,11 @@ export class AssignmentRunFlow {
     if (!isTextQuestion(qType)) return false;
 
     const questionId = q.id;
-    const maxAttempts = maxAttemptsForQuestionType(qType);
+    const maxAttempts = maxAttemptsForQuestionType(qType, run.attemptsPolicy);
+    const showCorrectOnAttempt = showCorrectOnAttemptForQuestionType(
+      qType,
+      run.attemptsPolicy,
+    );
 
     run.results[questionId] ??= { attempts: [] };
 
@@ -173,7 +179,7 @@ export class AssignmentRunFlow {
         correct,
         attempt: attemptNo,
         maxAttempts,
-        showCorrectAnswer: !correct && lastTry,
+        showCorrectAnswer: !correct && attemptNo >= showCorrectOnAttempt,
         correctAnswerText: correctText,
         explanation: q.explanation ?? null,
       }),
@@ -219,7 +225,10 @@ export class AssignmentRunFlow {
     const last = attempts[attempts.length - 1];
     if (!last) return false;
 
-    const maxAttempts = maxAttemptsForQuestionType(q.questionType);
+    const maxAttempts = maxAttemptsForQuestionType(
+      q.questionType,
+      run.attemptsPolicy,
+    );
     const canLeave =
       isChoiceQuestion(q.questionType) ||
       last.isCorrect ||
@@ -251,7 +260,10 @@ export class AssignmentRunFlow {
     const isLast = run.index >= run.assignment.questions.length - 1;
     if (!isLast) return false;
 
-    const maxAttempts = maxAttemptsForQuestionType(q.questionType);
+    const maxAttempts = maxAttemptsForQuestionType(
+      q.questionType,
+      run.attemptsPolicy,
+    );
 
     return (
       isChoiceQuestion(q.questionType) ||

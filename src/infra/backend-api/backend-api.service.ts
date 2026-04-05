@@ -60,10 +60,8 @@ export class BackendApiService {
       timeout: 7000,
     });
 
-    if (env.telegramBotInternalToken) {
-      this.http.defaults.headers.common["x-internal-token"] =
-        env.telegramBotInternalToken;
-    }
+    this.http.defaults.headers.common["x-internal-token"] =
+      env.telegramBotInternalToken;
 
     this.setupInterceptors();
   }

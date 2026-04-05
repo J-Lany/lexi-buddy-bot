@@ -9,7 +9,8 @@ import {
 
 import { ack } from "../helpers/ack.js";
 import { copy } from "../ui/helpers/copy.js";
-import { safeEditCallbackMessage } from "../helpers/safe-edit-callback-message.js";
+import { safeEditCallbackMessage } from "../helpers/edit-screen/safe-edit-callback-message.js";
+import { escapeHtml } from "../ui/helpers/html.js";
 
 const inFlight = new Set<string>();
 
@@ -83,7 +84,7 @@ export function registerInvitesRoutes(
 
       const msg = e instanceof Error ? e.message : String(e);
       await ctx.reply(
-        `${copy.ui.invites.errors.processFailed}\n${copy.ui.invites.errors.reasonPrefix} ${msg}`,
+        `${copy.ui.invites.errors.processFailed}\n${copy.ui.invites.errors.reasonPrefix} ${escapeHtml(msg)}`,
         { parse_mode: "HTML" },
       );
     } finally {

@@ -3,7 +3,7 @@ import type { NavScreen } from "../../session.js";
 import type { RenderScreenDeps } from "../types.js";
 
 import { withLoadingScreen } from "../../helpers/with-loading.js";
-import { safeEditScreen } from "../../helpers/safe-edit-screen.js";
+import { safeEditScreen } from "../../helpers/edit-screen/safe-edit-screen.js";
 import { withBreadcrumb } from "../../ui/messages/breadcrumbs.js";
 
 import { lessonAssignmentsKeyboard } from "../../ui/keyboards/lesson-assignments.keyboard.js";

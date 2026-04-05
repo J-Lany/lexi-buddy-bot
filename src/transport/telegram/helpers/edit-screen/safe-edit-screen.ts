@@ -1,22 +1,11 @@
-import type { BotContext } from "../context.js";
+import type { BotContext } from "../../context.js";
 import type { InlineKeyboardMarkup } from "grammy/types";
+import { getEditErrorKind } from "./get-edit-error-kind.js";
 
 type ScreenEditOptions = {
   reply_markup?: InlineKeyboardMarkup;
   parse_mode?: "HTML";
 };
-
-function isIgnorableEditError(err: unknown): boolean {
-  const e = err as { description?: string; message?: string };
-  const msg = `${e?.description ?? ""} ${e?.message ?? ""}`.toLowerCase();
-
-  return (
-    msg.includes("message is not modified") ||
-    msg.includes("message to edit not found") ||
-    msg.includes("can't be edited") ||
-    msg.includes("message can't be edited")
-  );
-}
 
 export async function safeEditScreen(
   ctx: BotContext,
@@ -34,7 +23,10 @@ export async function safeEditScreen(
       });
       return;
     } catch (err) {
-      if (!isIgnorableEditError(err)) throw err;
+      const kind = getEditErrorKind(err);
+
+      if (kind === "not_modified") return;
+      if (kind !== "not_editable") throw err;
     }
   }
 
