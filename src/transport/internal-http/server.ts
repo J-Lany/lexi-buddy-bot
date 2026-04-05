@@ -37,9 +37,7 @@ function requestIdMiddleware(req: Request, res: Response, next: NextFunction) {
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const requestId = resolveRequestId(req);
   const token = req.header("x-internal-token");
-  const ok =
-    Boolean(env.telegramBotInternalToken) &&
-    token === env.telegramBotInternalToken;
+  const ok = token === env.telegramBotInternalToken;
 
   if (!ok) {
     logWarn("internal_http_unauthorized", {
@@ -137,9 +135,19 @@ export function startInternalHttpServer(deps: {
     },
   );
 
-  return app.listen(env.internalPort, () => {
+  const server = app.listen(env.internalPort, () => {
     logInfo("internal_http_listening", {
       port: env.internalPort,
     });
   });
+
+  server.on("error", (err) => {
+    logError("internal_http_server_failed", err, {
+      port: env.internalPort,
+    });
+
+    process.exit(1);
+  });
+
+  return server;
 }

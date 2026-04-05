@@ -1,5 +1,5 @@
 import type { BotContext } from "../context.js";
-import { safeEditScreen } from "./safe-edit-screen.js";
+import { safeEditScreen } from "./edit-screen/safe-edit-screen.js";
 import { copy } from "../ui/helpers/copy.js";
 
 export async function withLoadingScreen<T>(

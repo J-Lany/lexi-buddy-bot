@@ -2,7 +2,7 @@ import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
 import type { RoutesDeps } from "./routes.deps.js";
 
-import { safeEditScreen } from "../helpers/safe-edit-screen.js";
+import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import { navPeek, navPush, navReplaceTop } from "../helpers/nav.js";
 import { renderScreen } from "../helpers/render-screen.js";
 import { sendChat } from "../helpers/send-chat.js";

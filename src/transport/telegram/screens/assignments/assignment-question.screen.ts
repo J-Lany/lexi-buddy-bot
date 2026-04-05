@@ -51,7 +51,7 @@ export async function renderAssignmentQuestionScreen(
 
   if (mode === "text") {
     const attempts = run.results[q.id]?.attempts ?? [];
-    const maxAttempts = maxAttemptsForQuestionType(qType);
+    const maxAttempts = maxAttemptsForQuestionType(qType, run.attemptsPolicy);
     const nextAttempt = Math.min(attempts.length + 1, maxAttempts);
 
     await sendChat(

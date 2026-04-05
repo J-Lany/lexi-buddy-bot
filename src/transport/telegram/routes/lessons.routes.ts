@@ -5,7 +5,7 @@ import type { RoutesDeps } from "./routes.deps.js";
 import { navPop } from "../helpers/nav.js";
 import { goTo } from "../helpers/go-to.js";
 import { ack } from "../helpers/ack.js";
-import { safeEditScreen } from "../helpers/safe-edit-screen.js";
+import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import { logError, logInfo } from "../../../observability/logger.js";
 
 export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {

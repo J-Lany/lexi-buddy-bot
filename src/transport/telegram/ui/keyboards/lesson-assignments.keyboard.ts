@@ -14,7 +14,7 @@ export function lessonAssignmentsKeyboard(items: LessonAssignmentListItem[]) {
   for (const a of items) {
     const done = isAssignmentDone(a.status);
     kb.text(
-      `${statusIcon(done)} ${ASSIGNMENT_TYPE_MAP[a.type]}`,
+      `${statusIcon(done)} ${ASSIGNMENT_TYPE_MAP[a.type] ?? "Task"}`,
       `assignment_open:${a.assignmentId}`,
     ).row();
   }

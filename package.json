@@ -16,6 +16,7 @@
   "dependencies": {
     "@eslint/js": "^9.38.0",
     "@grammyjs/auto-retry": "^2.0.2",
+    "@upstash/redis": "^1.37.0",
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
     "express": "^5.2.1",

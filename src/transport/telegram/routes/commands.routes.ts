@@ -4,7 +4,7 @@ import type { RoutesDeps } from "./routes.deps.js";
 
 import { goTo } from "../helpers/go-to.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
-import { safeEditScreen } from "../helpers/safe-edit-screen.js";
+import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import { logError } from "../../../observability/logger.js";
 
 export function registerCommandsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
