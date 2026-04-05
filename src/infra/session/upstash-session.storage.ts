@@ -14,14 +14,21 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 export const upstashSessionStorage: StorageAdapter<SessionData> = {
   async read(key) {
-    const raw = await redis.get<string>(`${PREFIX}${key}`);
-    if (!raw) return undefined;
+    const redisKey = `${PREFIX}${key}`;
+    const value = await redis.get<SessionData | null>(redisKey);
 
-    return JSON.parse(raw) as SessionData;
+    if (value == null) return undefined;
+
+    if (typeof value !== "object" || Array.isArray(value)) {
+      await redis.del(redisKey);
+      return undefined;
+    }
+
+    return value;
   },
 
   async write(key, value) {
-    await redis.set(`${PREFIX}${key}`, JSON.stringify(value), {
+    await redis.set(`${PREFIX}${key}`, value, {
       ex: SESSION_TTL_SECONDS,
     });
   },
