@@ -7,6 +7,7 @@ import { goTo } from "../helpers/go-to.js";
 import { ack } from "../helpers/ack.js";
 import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import { logError, logInfo } from "../../../observability/logger.js";
+import { beginNewScreen } from "../helpers/begin-new-screen.js";
 
 export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
   bot.callbackQuery("nav:lessons", async (ctx) => {
@@ -74,6 +75,55 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       await safeEditScreen(
         ctx,
         "⚠️ Не удалось открыть урок. Попробуй чуть позже.",
+      );
+    }
+  });
+
+  bot.callbackQuery(/^notification_open_lesson:\d+$/, async (ctx) => {
+    await ack(ctx);
+
+    const m = /^notification_open_lesson:(\d+)$/.exec(ctx.callbackQuery.data);
+    if (!m) return;
+
+    const lessonId = Number(m[1]);
+
+    logInfo("lesson_opened_from_notification", { lessonId });
+
+    try {
+      beginNewScreen(ctx);
+
+      await goTo(
+        ctx,
+        deps,
+        { name: "lesson", lessonId },
+        { navMode: "reset", clearAssignmentRun: "always" },
+      );
+    } catch (e) {
+      logError("notification_lesson_open_failed", e, { lessonId });
+      await safeEditScreen(
+        ctx,
+        "⚠️ Не удалось открыть урок. Попробуй чуть позже.",
+      );
+    }
+  });
+
+  bot.callbackQuery("notification_open_lessons", async (ctx) => {
+    await ack(ctx);
+
+    try {
+      beginNewScreen(ctx);
+
+      await goTo(
+        ctx,
+        deps,
+        { name: "lessons_list", page: 0 },
+        { navMode: "reset", clearAssignmentRun: "always" },
+      );
+    } catch (e) {
+      logError("notification_lessons_open_failed", e);
+      await safeEditScreen(
+        ctx,
+        "⚠️ Не удалось открыть список уроков. Попробуй чуть позже.",
       );
     }
   });
