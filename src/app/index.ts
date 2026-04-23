@@ -44,7 +44,7 @@ async function main() {
     host: os.hostname(),
     token_tail: env.telegramBotToken.slice(-6),
     backend_base_url: env.backendBaseUrl,
-    internal_port: env.internalPort,
+    http_port: env.port,
     started_at: new Date().toISOString(),
   });
 

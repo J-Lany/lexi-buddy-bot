@@ -15,8 +15,6 @@ export const env = {
 
   telegramBotToken: mustGet("TELEGRAM_BOT_TOKEN"),
   backendBaseUrl: mustGet("BACKEND_BASE_URL"),
-  internalPort: Number(process.env.INTERNAL_PORT ?? 8080),
-
   telegramBotInternalToken: mustGet("TELEGRAM_BOT_INTERNAL_TOKEN"),
 
   upstashRedisRestUrl: mustGet("UPSTASH_REDIS_REST_URL"),

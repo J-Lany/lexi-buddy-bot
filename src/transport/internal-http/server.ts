@@ -61,6 +61,10 @@ export function startInternalHttpServer(deps: {
   app.use(requestIdMiddleware);
   app.use(express.json({ limit: "256kb" }));
 
+  app.get("/healthz", (_req, res) => {
+    res.status(200).json({ ok: true });
+  });
+
   app.post(
     "/internal/teacher-request",
     authMiddleware,
@@ -135,15 +139,15 @@ export function startInternalHttpServer(deps: {
     },
   );
 
-  const server = app.listen(env.internalPort, () => {
+  const server = app.listen(env.port, "0.0.0.0", () => {
     logInfo("internal_http_listening", {
-      port: env.internalPort,
+      port: env.port,
     });
   });
 
   server.on("error", (err) => {
     logError("internal_http_server_failed", err, {
-      port: env.internalPort,
+      port: env.port,
     });
 
     process.exit(1);
