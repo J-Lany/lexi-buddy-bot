@@ -8,5 +8,5 @@ build:
   dockerfile: Dockerfile
 
 run:
-  containerPort: 8080
-  servicePort: 8080
+  containerPort: 80
+  servicePort: 80
