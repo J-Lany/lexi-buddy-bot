@@ -1,9 +1,9 @@
 import { InlineKeyboard } from "grammy";
-import { copy } from "../helpers/copy.js";
+import type { Translator } from "../helpers/copy.js";
 
-export function lessonAssignedKeyboard(lessonId: number) {
+export function lessonAssignedKeyboard(t: Translator, lessonId: number) {
   return new InlineKeyboard()
-    .text(copy.kb.nav.openLesson, `notification_open_lesson:${lessonId}`)
+    .text(t("kb-open-lesson"), `notification_open_lesson:${lessonId}`)
     .row()
-    .text(copy.kb.main.lessons, "notification_open_lessons");
+    .text(t("kb-my-lessons"), "notification_open_lessons");
 }

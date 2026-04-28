@@ -1,14 +1,17 @@
 import { InlineKeyboard } from "grammy";
 import { isAssignmentDone } from "../../../../domain/student-assignments/student-assignment-status.js";
 import { type LessonAssignmentListItem } from "../../../../domain/lessons/lessons.types.js";
-import { copy } from "../helpers/copy.js";
 import { ASSIGNMENT_TYPE_MAP } from "../../../../infra/backend-api/backend-api.maps.js";
+import type { Translator } from "../helpers/copy.js";
 
 function statusIcon(isDone: boolean) {
   return isDone ? "✅" : "⏳";
 }
 
-export function lessonAssignmentsKeyboard(items: LessonAssignmentListItem[]) {
+export function lessonAssignmentsKeyboard(
+  t: Translator,
+  items: LessonAssignmentListItem[],
+) {
   const kb = new InlineKeyboard();
 
   for (const a of items) {
@@ -21,10 +24,7 @@ export function lessonAssignmentsKeyboard(items: LessonAssignmentListItem[]) {
     ).row();
   }
 
-  kb.text(copy.kb.nav.backToLessons, "nav:back").text(
-    copy.kb.nav.menu,
-    "nav:home",
-  );
+  kb.text(t("kb-back-to-lessons"), "nav:back").text(t("kb-menu"), "nav:home");
 
   return kb;
 }

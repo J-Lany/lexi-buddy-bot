@@ -20,10 +20,7 @@ export function registerCommandsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       );
     } catch (e) {
       logError("command_lessons_failed", e);
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть уроки. Попробуй чуть позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 
@@ -39,10 +36,7 @@ export function registerCommandsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       );
     } catch (e) {
       logError("command_help_failed", e);
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть помощь. Попробуй чуть позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 }

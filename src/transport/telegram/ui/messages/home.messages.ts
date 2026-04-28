@@ -1,13 +1,19 @@
+import type { Translator } from "../helpers/copy.js";
 import { uiMessage } from "../helpers/ui.js";
-import { copy } from "../helpers/copy.js";
+import { escapeHtml } from "../helpers/html.js";
 
-export function homeMessage(firstName?: string | null) {
+export function homeMessage(t: Translator, firstName?: string | null) {
+  const name = firstName?.trim();
+  const greeting = name
+    ? t("home-greeting-named", { name: escapeHtml(name) })
+    : t("home-greeting");
+
   return uiMessage([
-    copy.ui.common.title("🏠", copy.ui.home.title),
+    t("home-title"),
     "",
-    copy.ui.home.greeting(firstName),
-    copy.ui.home.question,
+    greeting,
+    t("home-question"),
     "",
-    copy.ui.common.hint(copy.ui.home.hint),
+    t("home-hint"),
   ]);
 }

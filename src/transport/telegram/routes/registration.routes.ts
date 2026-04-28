@@ -8,7 +8,6 @@ import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
 import { ack } from "../helpers/ack.js";
-import { copy } from "../ui/helpers/copy.js";
 import { startRegistrationKeyboard } from "../ui/keyboards/registration.keyboard.js";
 import { setRequestUserId } from "../../../observability/request-context.js";
 import { escapeHtml } from "../ui/helpers/html.js";
@@ -36,7 +35,7 @@ export function registerRegistrationRoutes(
     ctx.session.userId = null;
     setRequestUserId(null);
 
-    await safeEditScreen(ctx, copy.ui.registration.cancelOk);
+    await safeEditScreen(ctx, ctx.t("reg-cancel-ok"));
   });
 
   bot.on("message:text", async (ctx, next) => {
@@ -44,8 +43,8 @@ export function registerRegistrationRoutes(
 
     beginNewScreen(ctx);
 
-    await safeEditScreen(ctx, copy.ui.registration.inProgress, {
-      reply_markup: startRegistrationKeyboard(),
+    await safeEditScreen(ctx, ctx.t("reg-in-progress"), {
+      reply_markup: startRegistrationKeyboard(ctx.t),
     });
   });
 
@@ -54,10 +53,7 @@ export function registerRegistrationRoutes(
 
     const draft = ctx.session.reg?.draft ?? buildDraftFromContext(ctx);
     if (!draft) {
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось восстановить регистрацию. Нажми /start ещё раз.",
-      );
+      await safeEditScreen(ctx, ctx.t("reg-restore-failed"));
       return;
     }
 
@@ -70,14 +66,14 @@ export function registerRegistrationRoutes(
 
       delete ctx.session.reg;
 
-      await safeEditScreen(ctx, copy.ui.registration.success);
+      await safeEditScreen(ctx, ctx.t("reg-success"));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
 
-      await safeEditScreen(ctx, copy.ui.registration.failed);
+      await safeEditScreen(ctx, ctx.t("reg-failed"));
 
       await ctx.reply(
-        `${copy.ui.registration.reasonPrefix} ${escapeHtml(msg)}\n\n${copy.ui.registration.tryAgain}`,
+        `${ctx.t("reg-reason-prefix")} ${escapeHtml(msg)}\n\n${ctx.t("reg-try-again")}`,
         { parse_mode: "HTML" },
       );
     }
@@ -89,9 +85,9 @@ export function registerRegistrationRoutes(
     setRequestUserId(null);
 
     await ctx
-      .answerCallbackQuery({ text: copy.ui.registration.callbackOk })
+      .answerCallbackQuery({ text: ctx.t("reg-callback-ok") })
       .catch(() => {});
 
-    await safeEditScreen(ctx, copy.ui.registration.cancelShort);
+    await safeEditScreen(ctx, ctx.t("reg-cancel-short"));
   });
 }

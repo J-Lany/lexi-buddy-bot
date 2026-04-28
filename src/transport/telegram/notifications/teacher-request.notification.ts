@@ -3,7 +3,7 @@ import type { BotContext } from "../context.js";
 import { teacherRequestKeyboard } from "../ui/keyboards/teacher-request.keyboard.js";
 import { uiMessage } from "../ui/helpers/ui.js";
 import { escapeHtml } from "../ui/helpers/html.js";
-import { copy } from "../ui/helpers/copy.js";
+import { i18n } from "../../../i18n/index.js";
 
 export type TeacherRequestNotification = {
   telegramId: number;
@@ -17,29 +17,32 @@ export class TeacherRequestNotificationSender {
 
   async send(payload: TeacherRequestNotification) {
     const chatId = payload.telegramId;
+    const t = (key: string, params?: Record<string, unknown>) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      i18n.t("en", key, params as any);
 
     const teacherLabel =
       payload.teacherName && payload.teacherName.trim()
         ? payload.teacherName.trim()
-        : copy.ui.notifications.teacherRequest.teacherFallbackName;
+        : t("notif-teacher-fallback-name");
 
     const teacherNameHtml = escapeHtml(teacherLabel);
 
     const text = uiMessage([
-      copy.ui.common.title("👩‍🏫", copy.ui.notifications.teacherRequest.title),
+      t("notif-teacher-request-title"),
       "",
-      copy.ui.notifications.teacherRequest.body(teacherNameHtml),
+      t("notif-teacher-request-body", { teacherName: teacherNameHtml }),
       payload.message?.trim()
-        ? `\n${copy.ui.notifications.teacherRequest.messagePrefix} ${escapeHtml(
+        ? `\n${t("notif-teacher-message-prefix")} ${escapeHtml(
             payload.message.trim(),
           )}`
         : null,
       "",
-      copy.ui.common.hint(copy.ui.notifications.teacherRequest.hint),
+      t("notif-teacher-hint"),
     ]);
 
     await this.bot.api.sendMessage(chatId, text, {
-      reply_markup: teacherRequestKeyboard(payload.inviteId),
+      reply_markup: teacherRequestKeyboard(t, payload.inviteId),
       parse_mode: "HTML",
     });
   }

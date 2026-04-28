@@ -1,7 +1,8 @@
 import type { Bot } from "grammy";
 import type { BotContext } from "../context.js";
 import { uiMessage, uiSection } from "../ui/helpers/ui.js";
-import { copy } from "../ui/helpers/copy.js";
+import { escapeHtml } from "../ui/helpers/html.js";
+import { i18n } from "../../../i18n/index.js";
 import { lessonAssignedKeyboard } from "../ui/keyboards/lesson-assigned.keyboard.js";
 
 export type LessonAssignedNotification = {
@@ -16,25 +17,27 @@ export class LessonAssignedNotificationSender {
 
   async send(payload: LessonAssignedNotification) {
     const chatId = payload.telegramId;
+    const t = (key: string, params?: Record<string, unknown>) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      i18n.t("en", key, params as any);
 
-    const title = payload.lessonTitle?.trim() || `Урок`;
+    const title = payload.lessonTitle?.trim() || t("nav-lessons");
 
     const teacherLine = payload.teacherName?.trim()
-      ? `От: ${uiSection(payload.teacherName.trim())}`
+      ? `${t("notif-teacher-fallback-name")}: ${uiSection(payload.teacherName.trim())}`
       : null;
 
     const text = uiMessage([
-      copy.ui.home.greeting(),
-      copy.ui.common.title("📘", copy.ui.lessons.lesson.newLesson),
+      t("notif-lesson-new"),
       "",
-      uiSection(title),
+      uiSection(escapeHtml(title)),
       teacherLine,
       "",
-      copy.ui.common.hint(copy.ui.lessons.lesson.openLesson),
+      t("notif-lesson-open-hint"),
     ]);
 
     await this.bot.api.sendMessage(chatId, text, {
-      reply_markup: lessonAssignedKeyboard(payload.lessonId),
+      reply_markup: lessonAssignedKeyboard(t, payload.lessonId),
       parse_mode: "HTML",
     });
   }

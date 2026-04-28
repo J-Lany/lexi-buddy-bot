@@ -1,20 +1,31 @@
 import type { InternalAssignmentDto } from "../../../../../infra/backend-api/backend-api.types.js";
-import { uiMessage, uiMeta } from "../../helpers/ui.js";
-import { copy } from "../../helpers/copy.js";
+import { uiMessage, uiMeta, uiQuote } from "../../helpers/ui.js";
 import { escapeHtml } from "../../helpers/html.js";
+import type { Translator } from "../../helpers/copy.js";
 
-function howToAnswerText(a: InternalAssignmentDto): string {
+const KNOWN_TYPES = new Set([
+  "definition_quiz",
+  "gap_filling",
+  "phrase_fail",
+  "collocation_check",
+]);
+
+function typeKeyBase(type: string) {
+  return `type-${type.replace(/_/g, "-")}`;
+}
+
+function howToAnswerText(t: Translator, a: InternalAssignmentDto): string {
   const types = new Set(a.questions.map((q) => q.questionType));
   const hasChoice = types.has("multiple_choice");
   const hasText = types.has("gap_fill") || types.has("open_text");
 
-  if (hasChoice && hasText) return copy.ui.assignment.intro.howToAnswer.mixed;
-  if (hasChoice) return copy.ui.assignment.intro.howToAnswer.choice;
-  if (hasText) return copy.ui.assignment.intro.howToAnswer.text;
-  return copy.ui.assignment.intro.howToAnswer.fallback;
+  if (hasChoice && hasText) return t("assignment-how-mixed");
+  if (hasChoice) return t("assignment-how-choice");
+  if (hasText) return t("assignment-how-text");
+  return t("assignment-how-fallback");
 }
 
-function vocabBlock(a: InternalAssignmentDto): string | null {
+function vocabBlock(t: Translator, a: InternalAssignmentDto): string | null {
   const items = (a.vocab ?? []).filter((x) => x.term?.trim());
   if (items.length === 0) return null;
 
@@ -26,7 +37,7 @@ function vocabBlock(a: InternalAssignmentDto): string | null {
       : "";
 
     const syn = x.synonyms?.length
-      ? `\n<i>Синонимы:</i> ${escapeHtml(x.synonyms.join(", "))}`
+      ? `\n<i>${t("assignment-vocab-synonyms-label")}</i> ${escapeHtml(x.synonyms.join(", "))}`
       : "";
 
     return `• <b>${term}</b>${tr}${syn}`;
@@ -34,12 +45,15 @@ function vocabBlock(a: InternalAssignmentDto): string | null {
 
   const content = lines.join("\n\n");
   return [
-    copy.ui.common.section("Словарь"),
+    t("assignment-vocab-title"),
     `<blockquote expandable>\n${content}\n</blockquote>`,
   ].join("\n");
 }
 
-export function assignmentIntroMessage(a: InternalAssignmentDto) {
+export function assignmentIntroMessage(
+  t: Translator,
+  a: InternalAssignmentDto,
+) {
   const meta = uiMeta([
     a.lesson?.title ?? null,
     a.lesson?.topic ?? null,
@@ -47,46 +61,43 @@ export function assignmentIntroMessage(a: InternalAssignmentDto) {
   ]);
 
   const typeKey = (a.type ?? "").trim();
-  const typed = (copy.ui.assignment.intro.byType as Record<string, unknown>)[
-    typeKey
-  ] as
-    | {
-        title: string;
-        body: string;
-        exampleTitle: string;
-        exampleBodyHtml: string;
-        note?: string;
-      }
-    | undefined;
+  const isKnown = KNOWN_TYPES.has(typeKey);
+  const kb = isKnown ? typeKeyBase(typeKey) : "";
 
-  const title = typed?.title ?? copy.ui.assignment.title;
-  const body = typed?.body ?? "";
-  const quoteTitle =
-    typed?.exampleTitle ?? copy.ui.assignment.intro.fallbackExampleTitle;
-  const quoteBody =
-    typed?.exampleBodyHtml ?? copy.ui.assignment.intro.fallbackExampleBodyHtml;
+  const title = isKnown
+    ? t(`${kb}-title` as Parameters<Translator>[0])
+    : t("assignment-title");
+  const body = isKnown ? t(`${kb}-body` as Parameters<Translator>[0]) : "";
+  const quoteTitle = isKnown
+    ? t(`${kb}-example-title` as Parameters<Translator>[0])
+    : t("assignment-fallback-example-title");
+  const quoteBody = isKnown
+    ? t(`${kb}-example-body` as Parameters<Translator>[0])
+    : t("assignment-fallback-example-body");
+  const noteRaw = isKnown ? t(`${kb}-note` as Parameters<Translator>[0]) : "";
+  const note = noteRaw !== "" ? noteRaw : null;
 
-  const howTo = howToAnswerText(a);
-  const vocab = vocabBlock(a);
+  const howTo = howToAnswerText(t, a);
+  const vocab = vocabBlock(t, a);
 
   return uiMessage([
     meta,
     "",
-    copy.ui.common.title("📝", title),
+    title,
     "",
     vocab ? `${vocab}\n` : null,
     body ? body : null,
     "",
-    copy.ui.common.labels.questionsCount(a.questions.length),
+    t("questions-count", { n: a.questions.length }),
 
-    !typed ? `Как отвечать: ${howTo}` : null,
-
-    "",
-    copy.ui.common.quote(quoteTitle, quoteBody),
-
-    typed?.note ? `\n${copy.ui.common.hint(typed.note)}` : null,
+    !isKnown ? `${t("assignment-how-prefix")} ${howTo}` : null,
 
     "",
-    copy.ui.assignment.intro.ready,
+    uiQuote(quoteTitle, quoteBody),
+
+    note ? `\n${note}` : null,
+
+    "",
+    t("assignment-ready"),
   ]);
 }

@@ -43,9 +43,13 @@ export async function renderLessonsListScreen(
 
   await safeEditScreen(
     ctx,
-    withBreadcrumb(screen, lessonsListMessage({ items, page, pages })),
+    withBreadcrumb(
+      ctx.t,
+      screen,
+      lessonsListMessage(ctx.t, { items, page, pages }),
+    ),
     {
-      reply_markup: lessonsListKeyboard(items, page),
+      reply_markup: lessonsListKeyboard(ctx.t, items, page),
       parse_mode: "HTML",
     },
   );

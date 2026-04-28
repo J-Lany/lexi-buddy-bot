@@ -14,8 +14,8 @@ export async function renderHelpScreen(
 ) {
   if (screen.name !== "help") return;
 
-  await safeEditScreen(ctx, withBreadcrumb(screen, helpMessage()), {
-    reply_markup: mainInlineKeyboard(),
+  await safeEditScreen(ctx, withBreadcrumb(ctx.t, screen, helpMessage(ctx.t)), {
+    reply_markup: mainInlineKeyboard(ctx.t),
     parse_mode: "HTML",
   });
 }

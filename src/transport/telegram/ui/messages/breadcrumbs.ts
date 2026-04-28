@@ -1,5 +1,5 @@
 import type { NavScreen } from "../../session.js";
-import { copy } from "../helpers/copy.js";
+import type { Translator } from "../helpers/copy.js";
 import { escapeHtml } from "../helpers/html.js";
 
 export type BreadcrumbMeta = {
@@ -14,50 +14,48 @@ function joinCrumbs(crumbs: Crumb[]) {
 }
 
 export function breadcrumb(
+  t: Translator,
   screen: NavScreen,
   meta: BreadcrumbMeta = {},
 ): string {
-  const home: Crumb = { title: copy.ui.common.text.menu };
+  const home: Crumb = { title: t("nav-home") };
 
   if (screen.name === "home") return joinCrumbs([home]);
 
   if (screen.name === "lessons_list")
-    return joinCrumbs([home, { title: copy.ui.common.text.lessons }]);
+    return joinCrumbs([home, { title: t("nav-lessons") }]);
 
   if (screen.name === "lesson") {
-    const lessonTitle = meta.lessonTitle?.trim() || copy.ui.common.text.lessons;
-
+    const lessonTitle = meta.lessonTitle?.trim() || t("nav-lessons");
     return joinCrumbs([
       home,
-      { title: copy.ui.common.text.lessons },
+      { title: t("nav-lessons") },
       { title: lessonTitle },
     ]);
   }
 
   if (screen.name === "assignment_intro") {
-    const lessonTitle = meta.lessonTitle?.trim() || copy.ui.common.text.lessons;
-
-    const assignmentTitle =
-      meta.assignmentType?.trim() || copy.ui.common.text.assignment;
-
+    const lessonTitle = meta.lessonTitle?.trim() || t("nav-lessons");
+    const assignmentTitle = meta.assignmentType?.trim() || t("nav-assignment");
     return joinCrumbs([
       home,
-      { title: copy.ui.common.text.lessons },
+      { title: t("nav-lessons") },
       { title: lessonTitle },
       { title: assignmentTitle },
     ]);
   }
 
   if (screen.name === "help")
-    return joinCrumbs([home, { title: copy.ui.common.text.help }]);
+    return joinCrumbs([home, { title: t("nav-help") }]);
 
   return joinCrumbs([home]);
 }
 
 export function withBreadcrumb(
+  t: Translator,
   screen: NavScreen,
   body: string,
   meta: BreadcrumbMeta = {},
 ) {
-  return `${breadcrumb(screen, meta)}\n\n${body}`;
+  return `${breadcrumb(t, screen, meta)}\n\n${body}`;
 }

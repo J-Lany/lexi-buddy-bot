@@ -59,6 +59,8 @@ export type AssignmentRunState = {
 export type SessionData = {
   userId?: number | null | undefined;
 
+  __language_code?: string | undefined;
+
   reg?:
     | {
         draft: RegistrationDraft;

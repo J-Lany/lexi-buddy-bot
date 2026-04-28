@@ -1,10 +1,11 @@
 import { InlineKeyboard } from "grammy";
 import type { StudentLessonListItem } from "../../../../domain/lessons/lessons.types.js";
-import { copy } from "../helpers/copy.js";
+import type { Translator } from "../helpers/copy.js";
 
 const PAGE_SIZE = 8;
 
 export function lessonsListKeyboard(
+  t: Translator,
   items: StudentLessonListItem[],
   page: number,
 ) {
@@ -28,14 +29,12 @@ export function lessonsListKeyboard(
   const hasNext = current < pages - 1;
 
   if (hasPrev || hasNext) {
-    if (hasPrev)
-      kb.text(copy.kb.lessonsPaging.prev, `lessons_page:${current - 1}`);
-    if (hasNext)
-      kb.text(copy.kb.lessonsPaging.next, `lessons_page:${current + 1}`);
+    if (hasPrev) kb.text(t("kb-lessons-prev"), `lessons_page:${current - 1}`);
+    if (hasNext) kb.text(t("kb-lessons-next"), `lessons_page:${current + 1}`);
     kb.row();
   }
 
-  kb.text(copy.kb.nav.back, "nav:back").text(copy.kb.nav.menu, "nav:home");
+  kb.text(t("kb-back"), "nav:back").text(t("kb-menu"), "nav:home");
 
   return kb;
 }

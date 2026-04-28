@@ -6,7 +6,6 @@ import { sendChat } from "../../helpers/send-chat.js";
 import { assignmentReviewKeyboard } from "../../ui/keyboards/assignment.keyboard.js";
 import { assignmentReviewMessage } from "../../ui/messages/assignments/assignment-review.message.js";
 import { getStudentAnswerText } from "../../../../domain/assignment-run/student-answer.js";
-import { copy } from "../../ui/helpers/copy.js";
 
 export async function renderAssignmentReviewScreen(
   ctx: BotContext,
@@ -17,7 +16,7 @@ export async function renderAssignmentReviewScreen(
 
   const run = ctx.session.assignmentRun;
   if (!run || !run.submitted) {
-    await sendChat(ctx, copy.ui.assignment.review.unavailable);
+    await sendChat(ctx, ctx.t("review-unavailable"));
     return;
   }
 
@@ -36,7 +35,7 @@ export async function renderAssignmentReviewScreen(
 
   await sendChat(
     ctx,
-    assignmentReviewMessage({
+    assignmentReviewMessage(ctx.t, {
       a,
       q,
       index: page,
@@ -44,7 +43,7 @@ export async function renderAssignmentReviewScreen(
       correctAnswerText,
     }),
     {
-      reply_markup: assignmentReviewKeyboard(page, totalPages),
+      reply_markup: assignmentReviewKeyboard(ctx.t, page, totalPages),
       parse_mode: "HTML",
     },
   );

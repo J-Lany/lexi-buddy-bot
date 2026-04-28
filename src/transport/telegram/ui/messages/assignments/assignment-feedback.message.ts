@@ -1,20 +1,23 @@
 import { uiMessage } from "../../helpers/ui.js";
-import { copy } from "../../helpers/copy.js";
 import { escapeHtml } from "../../helpers/html.js";
 import {
   isChoiceQuestion,
   isTextQuestion,
 } from "../../../../../domain/assignment-run/question.type.js";
+import type { Translator } from "../../helpers/copy.js";
 
-export function assignmentFeedbackMessage(params: {
-  questionType: string;
-  correct: boolean;
-  attempt: number;
-  maxAttempts: number;
-  correctAnswerText: string | null;
-  explanation: string | null;
-  showCorrectAnswer: boolean;
-}) {
+export function assignmentFeedbackMessage(
+  t: Translator,
+  params: {
+    questionType: string;
+    correct: boolean;
+    attempt: number;
+    maxAttempts: number;
+    correctAnswerText: string | null;
+    explanation: string | null;
+    showCorrectAnswer: boolean;
+  },
+) {
   const {
     questionType,
     correct,
@@ -31,11 +34,11 @@ export function assignmentFeedbackMessage(params: {
     : null;
 
   if (correct) {
-    lines.push(copy.ui.assignment.feedback.correct);
+    lines.push(t("feedback-correct"));
 
     if (safeExplanation) {
       lines.push("");
-      lines.push(copy.ui.assignment.feedback.explanationTitle);
+      lines.push(t("feedback-explanation-title"));
       lines.push(safeExplanation);
     }
 
@@ -43,16 +46,18 @@ export function assignmentFeedbackMessage(params: {
   }
 
   if (isChoiceQuestion(questionType)) {
-    lines.push(copy.ui.assignment.feedback.wrongChoice);
+    lines.push(t("feedback-wrong-choice"));
 
     if (correctAnswerText) {
       lines.push("");
-      lines.push(copy.ui.assignment.feedback.correctAnswer(correctAnswerText));
+      lines.push(
+        t("feedback-correct-answer", { answer: escapeHtml(correctAnswerText) }),
+      );
     }
 
     if (safeExplanation) {
       lines.push("");
-      lines.push(copy.ui.assignment.feedback.explanationTitle);
+      lines.push(t("feedback-explanation-title"));
       lines.push(safeExplanation);
     }
 
@@ -61,35 +66,35 @@ export function assignmentFeedbackMessage(params: {
 
   if (isTextQuestion(questionType)) {
     if (attempt < maxAttempts) {
-      lines.push(
-        copy.ui.assignment.feedback.wrongTryAgain(attempt, maxAttempts),
-      );
+      lines.push(t("feedback-wrong-try-again", { attempt, max: maxAttempts }));
       return uiMessage(lines);
     }
 
-    lines.push(
-      copy.ui.assignment.feedback.wrongNoMoreText(attempt, maxAttempts),
-    );
+    lines.push(t("feedback-wrong-no-more", { attempt, max: maxAttempts }));
 
     if (showCorrectAnswer && correctAnswerText) {
       lines.push("");
-      lines.push(copy.ui.assignment.feedback.correctAnswer(correctAnswerText));
+      lines.push(
+        t("feedback-correct-answer", { answer: escapeHtml(correctAnswerText) }),
+      );
     }
 
     if (safeExplanation) {
       lines.push("");
-      lines.push(copy.ui.assignment.feedback.explanationTitle);
+      lines.push(t("feedback-explanation-title"));
       lines.push(safeExplanation);
     }
 
     return uiMessage(lines);
   }
 
-  lines.push(copy.ui.assignment.feedback.wrongChoice);
+  lines.push(t("feedback-wrong-choice"));
 
   if (correctAnswerText) {
     lines.push("");
-    lines.push(copy.ui.assignment.feedback.correctAnswer(correctAnswerText));
+    lines.push(
+      t("feedback-correct-answer", { answer: escapeHtml(correctAnswerText) }),
+    );
   }
 
   return uiMessage(lines);

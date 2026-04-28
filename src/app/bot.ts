@@ -5,6 +5,7 @@ import { env } from "../config/env.js";
 import type { BotContext } from "../transport/telegram/context.js";
 import { setupSessionMiddleware } from "../transport/telegram/middlewares/session.middleware.js";
 import { setupErrorHandler } from "../transport/telegram/middlewares/error-handler.js";
+import { i18n } from "../i18n/index.js";
 
 import { registerStartRoutes } from "../transport/telegram/routes/start.routes.js";
 import { registerRegistrationRoutes } from "../transport/telegram/routes/registration.routes.js";
@@ -13,6 +14,7 @@ import { registerLessonsRoutes } from "../transport/telegram/routes/lessons.rout
 import { registerProfileRoutes } from "../transport/telegram/routes/profile.routes.js";
 import { registerCommandsRoutes } from "../transport/telegram/routes/commands.routes.js";
 import { registerStudentAssignmentsRoutes } from "../transport/telegram/routes/student-assignments.routes.js";
+import { registerLanguageRoutes } from "../transport/telegram/routes/language.routes.js";
 
 import { logInfo } from "../observability/logger.js";
 import { runWithRequestContext } from "../observability/request-context.js";
@@ -35,6 +37,8 @@ export function createBot(container: Container) {
   );
 
   setupSessionMiddleware(bot);
+
+  bot.use(i18n);
 
   bot.use(async (ctx, next) => {
     return await runWithRequestContext(
@@ -74,6 +78,7 @@ export function createBot(container: Container) {
   registerLessonsRoutes(bot, deps);
   registerStudentAssignmentsRoutes(bot, deps);
   registerProfileRoutes(bot, deps);
+  registerLanguageRoutes(bot, deps);
 
   return bot;
 }

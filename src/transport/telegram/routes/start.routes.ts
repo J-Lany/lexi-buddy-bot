@@ -12,7 +12,6 @@ import { beginNewScreen } from "../helpers/begin-new-screen.js";
 import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import type { RoutesDeps } from "./routes.deps.js";
 import { goTo } from "../helpers/go-to.js";
-import { copy } from "../ui/helpers/copy.js";
 import { clearAssignmentRun } from "../helpers/clear-assignment-run.js";
 
 import { logError, logInfo } from "../../../observability/logger.js";
@@ -42,7 +41,7 @@ export function registerStartRoutes(
         lastName: from.last_name ?? null,
       };
 
-      await safeEditScreen(ctx, copy.ui.common.loading);
+      await safeEditScreen(ctx, ctx.t("loading"));
 
       const view = await deps.home.getStartView(profile);
 
@@ -56,9 +55,13 @@ export function registerStartRoutes(
 
         ctx.session.reg = { draft: profile };
 
-        await safeEditScreen(ctx, startNeedRegMessage(profile.firstName), {
-          reply_markup: startRegistrationKeyboard(),
-        });
+        await safeEditScreen(
+          ctx,
+          startNeedRegMessage(ctx.t, profile.firstName),
+          {
+            reply_markup: startRegistrationKeyboard(ctx.t),
+          },
+        );
         return;
       }
 
@@ -70,7 +73,7 @@ export function registerStartRoutes(
       });
 
       if (view.type === "REGISTERED_NO_TEACHER") {
-        ctx.session.ui.bannerText = startRegisteredNoTeacherMessage();
+        ctx.session.ui.bannerText = startRegisteredNoTeacherMessage(ctx.t);
         await goTo(
           ctx,
           deps,
@@ -80,7 +83,10 @@ export function registerStartRoutes(
         return;
       }
 
-      ctx.session.ui.bannerText = startActiveStudentMessage(profile.firstName);
+      ctx.session.ui.bannerText = startActiveStudentMessage(
+        ctx.t,
+        profile.firstName,
+      );
       await goTo(
         ctx,
         deps,
@@ -89,10 +95,7 @@ export function registerStartRoutes(
       );
     } catch (e) {
       logError("start_failed", e);
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть стартовый экран. Попробуй позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 }

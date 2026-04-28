@@ -47,8 +47,9 @@ export async function renderLessonScreen(
   await safeEditScreen(
     ctx,
     withBreadcrumb(
+      ctx.t,
       screen,
-      lessonMessage({
+      lessonMessage(ctx.t, {
         lessonId: screen.lessonId,
         lessonTitle: meta?.title ?? null,
         topic: meta?.topic ?? null,
@@ -58,6 +59,9 @@ export async function renderLessonScreen(
       { lessonTitle: meta?.title ?? null },
     ),
 
-    { reply_markup: lessonAssignmentsKeyboard(items), parse_mode: "HTML" },
+    {
+      reply_markup: lessonAssignmentsKeyboard(ctx.t, items),
+      parse_mode: "HTML",
+    },
   );
 }

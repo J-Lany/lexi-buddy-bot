@@ -17,10 +17,12 @@ export async function renderHomeScreen(
   const banner = ctx.session.ui.bannerText ?? null;
   ctx.session.ui.bannerText = null;
 
-  const body = banner ? `${banner}` : homeMessage(ctx.from?.first_name ?? null);
+  const body = banner
+    ? `${banner}`
+    : homeMessage(ctx.t, ctx.from?.first_name ?? null);
 
-  await safeEditScreen(ctx, withBreadcrumb(screen, body), {
-    reply_markup: mainInlineKeyboard(),
+  await safeEditScreen(ctx, withBreadcrumb(ctx.t, screen, body), {
+    reply_markup: mainInlineKeyboard(ctx.t),
     parse_mode: "HTML",
   });
 }

@@ -11,7 +11,6 @@ import {
 
 import { isTextQuestion } from "../../../../domain/assignment-run/question.type.js";
 import { maxAttemptsForQuestionType } from "../../../../domain/assignment-run/attempts.policy.js";
-import { copy } from "../../ui/helpers/copy.js";
 
 export async function renderAssignmentQuestionScreen(
   ctx: BotContext,
@@ -22,7 +21,7 @@ export async function renderAssignmentQuestionScreen(
 
   const run = ctx.session.assignmentRun;
   if (!run) {
-    await sendChat(ctx, copy.ui.assignment.sessionNotFound);
+    await sendChat(ctx, ctx.t("session-not-found"));
     return;
   }
 
@@ -33,21 +32,25 @@ export async function renderAssignmentQuestionScreen(
   const a = run.assignment;
   const q = a.questions[run.index];
   if (!q) {
-    await sendChat(ctx, copy.ui.assignment.question.questionNotFound);
+    await sendChat(ctx, ctx.t("question-not-found"));
     return;
   }
 
   const qType = q.questionType;
   const mode: "choice" | "text" = isTextQuestion(qType) ? "text" : "choice";
 
-  await sendChat(ctx, assignmentQuestionMessage({ a, q, index: run.index }), {
-    reply_markup: assignmentQuestionKeyboard({
-      sessionId: run.clientSessionId,
-      question: q,
-      mode,
-    }),
-    parse_mode: "HTML",
-  });
+  await sendChat(
+    ctx,
+    assignmentQuestionMessage(ctx.t, { a, q, index: run.index }),
+    {
+      reply_markup: assignmentQuestionKeyboard({
+        sessionId: run.clientSessionId,
+        question: q,
+        mode,
+      }),
+      parse_mode: "HTML",
+    },
+  );
 
   if (mode === "text") {
     const attempts = run.results[q.id]?.attempts ?? [];
@@ -56,7 +59,10 @@ export async function renderAssignmentQuestionScreen(
 
     await sendChat(
       ctx,
-      assignmentTextAnswerHintMessage({ attempt: nextAttempt, maxAttempts }),
+      assignmentTextAnswerHintMessage(ctx.t, {
+        attempt: nextAttempt,
+        maxAttempts,
+      }),
       {
         parse_mode: "HTML",
       },

@@ -1,13 +1,13 @@
+import type { Translator } from "../helpers/copy.js";
 import { uiMessage } from "../helpers/ui.js";
-import { copy } from "../helpers/copy.js";
 
-export function helpMessage() {
+export function helpMessage(t: Translator) {
   return uiMessage([
-    copy.ui.common.title("❓", copy.ui.help.title),
+    t("help-title"),
     "",
-    copy.ui.common.section(copy.ui.help.section),
-    copy.ui.common.list(copy.ui.help.commands),
+    t("help-section"),
+    t("help-commands"),
     "",
-    copy.ui.common.hint(copy.ui.help.hint),
+    t("help-hint"),
   ]);
 }

@@ -1,39 +1,42 @@
 import type { LessonAssignmentListItem } from "../../../../../domain/lessons/lessons.types.js";
 import { isAssignmentDone } from "../../../../../domain/student-assignments/student-assignment-status.js";
-import { uiMessage, uiMeta } from "../../helpers/ui.js";
-import { copy } from "../../helpers/copy.js";
+import { uiMessage, uiMeta, uiTitle } from "../../helpers/ui.js";
+import type { Translator } from "../../helpers/copy.js";
 
-export function lessonMessage(params: {
-  lessonId: number;
-  lessonTitle?: string | null;
-  topic?: string | null;
-  level?: string | null;
-  items: LessonAssignmentListItem[];
-}) {
+export function lessonMessage(
+  t: Translator,
+  params: {
+    lessonId: number;
+    lessonTitle?: string | null;
+    topic?: string | null;
+    level?: string | null;
+    items: LessonAssignmentListItem[];
+  },
+) {
   const { lessonId, lessonTitle, topic, level, items } = params;
 
-  const title = lessonTitle?.trim() ? lessonTitle.trim() : `Урок #${lessonId}`;
+  const title = lessonTitle?.trim() || `${t("nav-lessons")} #${lessonId}`;
   const meta = uiMeta([topic ?? null, level ?? null]);
 
   if (items.length === 0) {
     return uiMessage([
-      copy.ui.common.title("📘", title),
+      uiTitle("📘", title),
       meta,
       "",
-      copy.ui.lessons.lesson.emptyText,
+      t("lesson-empty"),
       "",
-      copy.ui.common.hint(copy.ui.lessons.lesson.emptyHint),
+      t("lesson-empty-hint"),
     ]);
   }
 
   const done = items.filter((x) => isAssignmentDone(x.status)).length;
 
   return uiMessage([
-    copy.ui.common.title("📘", title),
+    uiTitle("📘", title),
     meta,
     "",
-    copy.ui.common.labels.progress(done, items.length),
+    t("progress", { done, total: items.length }),
     "",
-    copy.ui.lessons.lesson.chooseAssignment,
+    t("lesson-choose"),
   ]);
 }

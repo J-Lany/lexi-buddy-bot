@@ -13,8 +13,6 @@ import { beginNewScreen } from "../helpers/begin-new-screen.js";
 import { AssignmentRunFlow } from "../../../application/assignment-run/assignment-run.flow.js";
 import { logError, logInfo } from "../../../observability/logger.js";
 
-const STALE_ASSIGNMENT_TEXT = "Экран устарел. Открой задание заново.";
-
 export function registerStudentAssignmentsRoutes(
   bot: Bot<BotContext>,
   deps: RoutesDeps,
@@ -51,13 +49,13 @@ export function registerStudentAssignmentsRoutes(
     const current = navPeek(ctx);
 
     if (!telegramId || !current || current.name !== "assignment_intro") {
-      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
     const key = `${telegramId}:${current.assignmentId}`;
     if (beginInFlight.has(key)) {
-      await ack(ctx, "Уже запускаю задание…");
+      await ack(ctx, ctx.t("already-starting"));
       return;
     }
 
@@ -80,10 +78,7 @@ export function registerStudentAssignmentsRoutes(
         assignmentId: current.assignmentId,
       });
 
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось начать задание. Попробуй позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     } finally {
       beginInFlight.delete(key);
     }
@@ -93,7 +88,7 @@ export function registerStudentAssignmentsRoutes(
     const data = ctx.callbackQuery.data;
     const m = /^assignment_choose:([^:]+):(\d+):(\d+)$/.exec(data);
     if (!m) {
-      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
@@ -108,7 +103,7 @@ export function registerStudentAssignmentsRoutes(
     });
 
     if (!ok) {
-      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
@@ -143,7 +138,7 @@ export function registerStudentAssignmentsRoutes(
   bot.callbackQuery("assignment_submit_retry", async (ctx) => {
     const run = ctx.session.assignmentRun;
     if (!run) {
-      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
@@ -158,7 +153,7 @@ export function registerStudentAssignmentsRoutes(
   bot.callbackQuery("assignment_review", async (ctx) => {
     const run = ctx.session.assignmentRun;
     if (!run || !run.submitted) {
-      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
@@ -171,13 +166,13 @@ export function registerStudentAssignmentsRoutes(
   bot.callbackQuery(/^assignment_review_page:\d+$/, async (ctx) => {
     const run = ctx.session.assignmentRun;
     if (!run || !run.submitted) {
-      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
     const m = /^assignment_review_page:(\d+)$/.exec(ctx.callbackQuery.data);
     if (!m) {
-      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
@@ -192,7 +187,7 @@ export function registerStudentAssignmentsRoutes(
   bot.callbackQuery("assignment_to_lesson", async (ctx) => {
     const run = ctx.session.assignmentRun;
     if (!run) {
-      await ack(ctx, STALE_ASSIGNMENT_TEXT);
+      await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
@@ -200,7 +195,7 @@ export function registerStudentAssignmentsRoutes(
 
     const lessonId = flow.finishToLesson(ctx);
     if (lessonId === null) {
-      await sendChat(ctx, STALE_ASSIGNMENT_TEXT);
+      await sendChat(ctx, ctx.t("stale-assignment"));
       return;
     }
 

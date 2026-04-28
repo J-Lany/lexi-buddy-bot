@@ -120,7 +120,7 @@ export class AssignmentRunFlow {
 
     run.ui = {
       canGoNext: true,
-      feedbackText: assignmentFeedbackMessage({
+      feedbackText: assignmentFeedbackMessage(ctx.t, {
         questionType: q.questionType,
         correct: isCorrect,
         attempt: 1,
@@ -174,7 +174,7 @@ export class AssignmentRunFlow {
 
     run.ui = {
       canGoNext,
-      feedbackText: assignmentFeedbackMessage({
+      feedbackText: assignmentFeedbackMessage(ctx.t, {
         questionType: q.questionType,
         correct,
         attempt: attemptNo,

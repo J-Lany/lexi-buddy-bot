@@ -1,12 +1,12 @@
 import { InlineKeyboard } from "grammy";
 import type { InternalAssignmentQuestionDto } from "../../../../infra/backend-api/backend-api.types.js";
 import { choiceEmoji } from "../../helpers/choice-emoji.js";
-import { copy } from "../helpers/copy.js";
+import type { Translator } from "../helpers/copy.js";
 
-export function assignmentIntroKeyboard() {
+export function assignmentIntroKeyboard(t: Translator) {
   return new InlineKeyboard()
-    .text(copy.kb.nav.back, "nav:back")
-    .text(copy.kb.assignment.begin, "assignment_begin");
+    .text(t("kb-back"), "nav:back")
+    .text(t("kb-begin"), "assignment_begin");
 }
 
 export function assignmentQuestionKeyboard(params: {
@@ -31,40 +31,47 @@ export function assignmentQuestionKeyboard(params: {
   return kb;
 }
 
-export function assignmentDoneKeyboard(params: { canReview: boolean }) {
+export function assignmentDoneKeyboard(
+  t: Translator,
+  params: { canReview: boolean },
+) {
   const kb = new InlineKeyboard();
 
-  kb.text(copy.kb.assignment.toLesson, "assignment_to_lesson").row();
+  kb.text(t("kb-to-lesson"), "assignment_to_lesson").row();
 
   if (params.canReview) {
-    kb.text(copy.kb.assignment.review, "assignment_review").row();
+    kb.text(t("kb-review"), "assignment_review").row();
   }
 
-  kb.text(copy.kb.nav.menu, "nav:home");
-  kb.row().text(copy.kb.assignment.finish, "assignment_finish");
+  kb.text(t("kb-menu"), "nav:home");
+  kb.row().text(t("kb-finish"), "assignment_finish");
 
   return kb;
 }
 
-export function assignmentSubmitErrorKeyboard() {
+export function assignmentSubmitErrorKeyboard(t: Translator) {
   return new InlineKeyboard()
-    .text(copy.kb.assignment.retrySubmit, "assignment_submit_retry")
+    .text(t("kb-retry-submit"), "assignment_submit_retry")
     .row()
-    .text(copy.kb.assignment.finish, "assignment_finish")
+    .text(t("kb-finish"), "assignment_finish")
     .row()
-    .text(copy.kb.nav.menu, "nav:home");
+    .text(t("kb-menu"), "nav:home");
 }
 
-export function assignmentReviewKeyboard(page: number, totalPages: number) {
+export function assignmentReviewKeyboard(
+  t: Translator,
+  page: number,
+  totalPages: number,
+) {
   const kb = new InlineKeyboard();
 
   if (page > 0)
-    kb.text(copy.kb.reviewPaging.prev, `assignment_review_page:${page - 1}`);
+    kb.text(t("kb-review-prev"), `assignment_review_page:${page - 1}`);
   if (page < totalPages - 1)
-    kb.text(copy.kb.reviewPaging.next, `assignment_review_page:${page + 1}`);
+    kb.text(t("kb-review-next"), `assignment_review_page:${page + 1}`);
 
-  kb.row().text(copy.kb.reviewPaging.toLesson, "assignment_to_lesson");
-  kb.row().text(copy.kb.reviewPaging.finish, "assignment_finish");
+  kb.row().text(t("kb-review-to-lesson"), "assignment_to_lesson");
+  kb.row().text(t("kb-review-finish"), "assignment_finish");
 
   return kb;
 }

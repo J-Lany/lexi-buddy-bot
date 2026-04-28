@@ -22,10 +22,7 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       );
     } catch (e) {
       logError("nav_lessons_failed", e);
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть список уроков. Попробуй чуть позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 
@@ -46,10 +43,7 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       );
     } catch (e) {
       logError("lessons_page_failed", e, { page });
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось переключить страницу уроков. Попробуй ещё раз.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 
@@ -72,10 +66,7 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       );
     } catch (e) {
       logError("lesson_open_failed", e, { lessonId });
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть урок. Попробуй чуть позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 
@@ -100,10 +91,7 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       );
     } catch (e) {
       logError("notification_lesson_open_failed", e, { lessonId });
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть урок. Попробуй чуть позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 
@@ -121,10 +109,7 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       );
     } catch (e) {
       logError("notification_lessons_open_failed", e);
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть список уроков. Попробуй чуть позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 
@@ -145,10 +130,7 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       );
     } catch (e) {
       logError("assignment_open_failed", e, { assignmentId });
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть задание. Попробуй чуть позже.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 
@@ -159,10 +141,7 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       await goTo(ctx, deps, { name: "home" }, { navMode: "reset" });
     } catch (e) {
       logError("nav_home_failed", e);
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось открыть главное меню. Попробуй ещё раз.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 
@@ -176,10 +155,7 @@ export function registerLessonsRoutes(bot: Bot<BotContext>, deps: RoutesDeps) {
       await goTo(ctx, deps, prev, { navMode: "replaceTop" });
     } catch (e) {
       logError("nav_back_failed", e, { target: prev.name });
-      await safeEditScreen(
-        ctx,
-        "⚠️ Не удалось вернуться назад. Попробуй ещё раз.",
-      );
+      await safeEditScreen(ctx, ctx.t("error-generic"));
     }
   });
 }

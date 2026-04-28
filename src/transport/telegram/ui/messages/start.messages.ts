@@ -1,30 +1,31 @@
+import type { Translator } from "../helpers/copy.js";
 import { uiMessage } from "../helpers/ui.js";
-import { copy } from "../helpers/copy.js";
+import { escapeHtml } from "../helpers/html.js";
 
-export function startNeedRegMessage(firstName: string) {
+export function startNeedRegMessage(t: Translator, firstName: string) {
   return uiMessage([
-    copy.ui.start.needReg.title(firstName),
+    t("start-need-reg-title", { firstName: escapeHtml(firstName) }),
     "",
-    copy.ui.start.needReg.text,
+    t("start-need-reg-text"),
     "",
-    copy.ui.common.hint(copy.ui.start.needReg.hint),
+    t("start-need-reg-hint"),
   ]);
 }
 
-export function startRegisteredNoTeacherMessage() {
+export function startRegisteredNoTeacherMessage(t: Translator) {
   return uiMessage([
-    copy.ui.common.title("✨", copy.ui.start.registeredNoTeacher.title),
+    t("start-no-teacher-title"),
     "",
-    copy.ui.start.registeredNoTeacher.text,
+    t("start-no-teacher-text"),
     "",
-    copy.ui.common.hint(copy.ui.start.registeredNoTeacher.hint),
+    t("start-no-teacher-hint"),
   ]);
 }
 
-export function startActiveStudentMessage(firstName: string) {
+export function startActiveStudentMessage(t: Translator, firstName: string) {
   return uiMessage([
-    copy.ui.start.activeStudent.title(firstName),
+    t("start-active-title", { firstName: escapeHtml(firstName) }),
     "",
-    copy.ui.start.activeStudent.text,
+    t("start-active-text"),
   ]);
 }

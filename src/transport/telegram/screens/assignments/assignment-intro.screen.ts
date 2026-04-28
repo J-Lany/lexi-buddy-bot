@@ -25,12 +25,12 @@ export async function renderAssignmentIntroScreen(
 
   await safeEditScreen(
     ctx,
-    withBreadcrumb(screen, assignmentIntroMessage(a), {
+    withBreadcrumb(ctx.t, screen, assignmentIntroMessage(ctx.t, a), {
       lessonTitle: a.lesson?.title ?? null,
       assignmentType: a.type ?? null,
     }),
     {
-      reply_markup: assignmentIntroKeyboard(),
+      reply_markup: assignmentIntroKeyboard(ctx.t),
       parse_mode: "HTML",
     },
   );

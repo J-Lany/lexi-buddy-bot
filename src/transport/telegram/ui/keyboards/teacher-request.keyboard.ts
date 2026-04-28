@@ -1,8 +1,8 @@
 import { InlineKeyboard } from "grammy";
-import { copy } from "../helpers/copy.js";
+import type { Translator } from "../helpers/copy.js";
 
-export function teacherRequestKeyboard(inviteId: number) {
+export function teacherRequestKeyboard(t: Translator, inviteId: number) {
   return new InlineKeyboard()
-    .text(copy.kb.invites.accept, `invite_accept:${inviteId}`)
-    .text(copy.kb.invites.decline, `invite_decline:${inviteId}`);
+    .text(t("kb-accept"), `invite_accept:${inviteId}`)
+    .text(t("kb-decline"), `invite_decline:${inviteId}`);
 }

@@ -1,9 +1,11 @@
 import { InlineKeyboard } from "grammy";
-import { copy } from "../helpers/copy.js";
+import type { Translator } from "../helpers/copy.js";
 
-export function mainInlineKeyboard() {
+export function mainInlineKeyboard(t: Translator) {
   return new InlineKeyboard()
-    .text(copy.kb.main.lessons, "nav:lessons")
+    .text(t("kb-my-lessons"), "nav:lessons")
     .row()
-    .text(copy.kb.main.help, "nav:help");
+    .text(t("kb-help"), "nav:help")
+    .row()
+    .text(t("kb-lang"), "nav:language");
 }
