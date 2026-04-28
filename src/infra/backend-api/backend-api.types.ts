@@ -1,33 +1,30 @@
-import { StudentAssignmentStatus } from "../../domain/student-assignments/student-assignment-status.js";
-import { ASSIGNMENT_TYPE_MAP } from "./backend-api.maps.js";
-
 export type GetStudentProfileResponse = {
-  firstName?: string | null;
-  lastName?: string | null;
-  username?: string | null;
-  level?: string | null;
-  ageGroup?: string | null;
-  groupsCount?: number | null;
+  id: number;
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+  level: string | null;
+  ageGroup: string | null;
+  groupsCount: number;
 };
 
 export type GetStudentLessonsResponse = {
   items: Array<{
     lessonId: number;
     title: string;
-    level?: string | null;
-    topic?: string | null;
-    archived?: boolean;
+    targetLanguage: string;
+    nativeLanguage: string;
+    level: string | null;
+    topic: string | null;
   }>;
 };
-
-export type AssignmentTypes = keyof typeof ASSIGNMENT_TYPE_MAP;
 
 export type GetLessonAssignmentsResponse = {
   items: Array<{
     assignmentId: number;
-    type: AssignmentTypes;
-    status: StudentAssignmentStatus;
-    score?: number | null;
+    type: string;
+    status: string | null;
+    score: number | null;
   }>;
 };
 
@@ -57,6 +54,9 @@ export type InternalAssignmentDto = {
   lesson: {
     lessonId: number;
     title: string;
+    targetLanguage: string;
+    nativeLanguage: string;
+    instructionLanguage: string;
     level: string | null;
     ageCategory: string | null;
     topic: string | null;
@@ -103,7 +103,8 @@ export type SubmitAssignmentRequestDto = {
 };
 
 export type SubmitAssignmentResponseDto = {
-  ok: boolean;
+  ok: true;
+  attemptId: number;
   savedAttempts: number;
   score: number | null;
   status: string;

@@ -12,6 +12,8 @@ export class LessonsService {
     return (res.items ?? []).map((x) => ({
       lessonId: x.lessonId,
       title: x.title,
+      targetLanguage: x.targetLanguage,
+      nativeLanguage: x.nativeLanguage,
       level: x.level ?? null,
       topic: x.topic ?? null,
     }));

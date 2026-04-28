@@ -29,6 +29,8 @@ export async function renderLessonScreen(
     >((acc, l) => {
       acc[l.lessonId] = {
         title: l.title,
+        targetLanguage: l.targetLanguage,
+        nativeLanguage: l.nativeLanguage,
         topic: l.topic ?? null,
         level: l.level ?? null,
       };

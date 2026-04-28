@@ -1,12 +1,13 @@
 import type { BackendApiService } from "../../infra/backend-api/backend-api.service.js";
 
 export type StudentProfile = {
-  firstName?: string | null;
-  lastName?: string | null;
-  username?: string | null;
-  level?: string | null;
-  ageGroup?: string | null;
-  groupsCount?: number | null;
+  id: number;
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+  level: string | null;
+  ageGroup: string | null;
+  groupsCount: number;
 };
 
 export class ProfileService {

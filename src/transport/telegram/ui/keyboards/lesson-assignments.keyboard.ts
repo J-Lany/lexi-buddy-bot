@@ -13,8 +13,10 @@ export function lessonAssignmentsKeyboard(items: LessonAssignmentListItem[]) {
 
   for (const a of items) {
     const done = isAssignmentDone(a.status);
+    const typeLabel =
+      (ASSIGNMENT_TYPE_MAP as Record<string, string>)[a.type] ?? "Task";
     kb.text(
-      `${statusIcon(done)} ${ASSIGNMENT_TYPE_MAP[a.type] ?? "Task"}`,
+      `${statusIcon(done)} ${typeLabel}`,
       `assignment_open:${a.assignmentId}`,
     ).row();
   }

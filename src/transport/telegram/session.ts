@@ -75,7 +75,13 @@ export type SessionData = {
     lessonsById?:
       | Record<
           number,
-          { title: string; topic: string | null; level: string | null }
+          {
+            title: string;
+            targetLanguage: string;
+            nativeLanguage: string;
+            topic: string | null;
+            level: string | null;
+          }
         >
       | undefined;
   };
