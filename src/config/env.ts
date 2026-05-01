@@ -10,7 +10,7 @@ function mustGet(name: string): string {
 }
 
 export const env = {
-  nodeEnv: process.env.NODE_ENV ?? "development",
+  nodeEnv: process.env.NODE_ENV ?? "production",
   port: Number(process.env.PORT ?? 80),
 
   telegramBotToken: mustGet("TELEGRAM_BOT_TOKEN"),

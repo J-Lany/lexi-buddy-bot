@@ -26,17 +26,17 @@ export function parseTeacherRequestPayload(
   };
 
   if (b.teacherName != null) {
-    if (typeof b.teacherName !== "string") {
-      throw new Error("teacherName must be string|null");
+    if (typeof b.teacherName !== "string" || b.teacherName.length > 256) {
+      throw new Error("teacherName must be string (max 256 chars)");
     }
     result.teacherName = b.teacherName.trim() || null;
   }
 
   if (b.message != null) {
-    if (typeof b.message !== "string") {
-      throw new Error("message must be string|null");
+    if (typeof b.message !== "string" || b.message.length > 1024) {
+      throw new Error("message must be string (max 1024 chars)");
     }
-    result.message = b.message;
+    result.message = b.message.trim() || null;
   }
 
   return result;

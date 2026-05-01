@@ -20,19 +20,19 @@ export function parseLessonAssignedPayload(
   const telegramId = parseNumberLike(b.telegramId, "telegramId");
   const lessonId = parseNumberLike(b.lessonId, "lessonId");
 
-  if (typeof b.lessonTitle !== "string") {
-    throw new Error("lessonTitle must be string");
+  if (typeof b.lessonTitle !== "string" || b.lessonTitle.length > 256) {
+    throw new Error("lessonTitle must be string (max 256 chars)");
   }
 
   const result: LessonAssignedNotification = {
     telegramId,
     lessonId,
-    lessonTitle: b.lessonTitle.trim() || `Урок`,
+    lessonTitle: b.lessonTitle.trim() || "Lesson",
   };
 
   if (b.teacherName != null) {
-    if (typeof b.teacherName !== "string") {
-      throw new Error("teacherName must be string|null");
+    if (typeof b.teacherName !== "string" || b.teacherName.length > 256) {
+      throw new Error("teacherName must be string (max 256 chars)");
     }
     result.teacherName = b.teacherName.trim() || null;
   }

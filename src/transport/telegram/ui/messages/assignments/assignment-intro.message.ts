@@ -1,5 +1,5 @@
 import type { InternalAssignmentDto } from "../../../../../infra/backend-api/backend-api.types.js";
-import { uiMessage, uiMeta, uiQuote } from "../../helpers/ui.js";
+import { uiMessage, uiMeta, uiTitle, uiQuote } from "../../helpers/ui.js";
 import { escapeHtml } from "../../helpers/html.js";
 import type { Translator } from "../../helpers/copy.js";
 
@@ -9,6 +9,9 @@ const KNOWN_TYPES = new Set([
   "phrase_fail",
   "collocation_check",
 ]);
+
+// Only these types have a non-empty note in the FTL
+const TYPES_WITH_NOTES = new Set(["phrase_fail"]);
 
 function typeKeyBase(type: string) {
   return `type-${type.replace(/_/g, "-")}`;
@@ -64,9 +67,12 @@ export function assignmentIntroMessage(
   const isKnown = KNOWN_TYPES.has(typeKey);
   const kb = isKnown ? typeKeyBase(typeKey) : "";
 
+  // For known types: FTL key is plain text → wrap in uiTitle for consistent formatting
+  // For unknown types: t("assignment-title") already has icon + bold from FTL
   const title = isKnown
-    ? t(`${kb}-title` as Parameters<Translator>[0])
+    ? uiTitle("📝", t(`${kb}-title` as Parameters<Translator>[0]))
     : t("assignment-title");
+
   const body = isKnown ? t(`${kb}-body` as Parameters<Translator>[0]) : "";
   const quoteTitle = isKnown
     ? t(`${kb}-example-title` as Parameters<Translator>[0])
@@ -74,8 +80,12 @@ export function assignmentIntroMessage(
   const quoteBody = isKnown
     ? t(`${kb}-example-body` as Parameters<Translator>[0])
     : t("assignment-fallback-example-body");
-  const noteRaw = isKnown ? t(`${kb}-note` as Parameters<Translator>[0]) : "";
-  const note = noteRaw !== "" ? noteRaw : null;
+
+  // Avoid the Fluent { "" } isolation-mark issue: check note only for types that have one
+  const note =
+    isKnown && TYPES_WITH_NOTES.has(typeKey)
+      ? t(`${kb}-note` as Parameters<Translator>[0])
+      : null;
 
   const howTo = howToAnswerText(t, a);
   const vocab = vocabBlock(t, a);

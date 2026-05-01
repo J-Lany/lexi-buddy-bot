@@ -42,7 +42,6 @@ async function main() {
   logInfo("boot_starting_app", {
     pid: process.pid,
     host: os.hostname(),
-    token_tail: env.telegramBotToken.slice(-6),
     backend_base_url: env.backendBaseUrl,
     http_port: env.port,
     started_at: new Date().toISOString(),
@@ -51,17 +50,22 @@ async function main() {
   const container = createContainer();
   const bot = createBot(container);
 
-  process.once("SIGINT", () => {
+  function handleShutdown(signal: string) {
+    if (isShuttingDown) return;
     isShuttingDown = true;
-    logInfo("signal_received", { signal: "SIGINT" });
-    void bot.stop();
-  });
+    logInfo("signal_received", { signal });
 
-  process.once("SIGTERM", () => {
-    isShuttingDown = true;
-    logInfo("signal_received", { signal: "SIGTERM" });
-    void bot.stop();
-  });
+    const timeout = setTimeout(() => {
+      logError("shutdown_timeout", new Error("Graceful shutdown timed out"));
+      process.exit(1);
+    }, 25_000);
+    timeout.unref();
+
+    void bot.stop().finally(() => clearTimeout(timeout));
+  }
+
+  process.once("SIGINT", () => handleShutdown("SIGINT"));
+  process.once("SIGTERM", () => handleShutdown("SIGTERM"));
 
   logInfo("telegram_api_check_started");
   const me = await bot.api.getMe();
