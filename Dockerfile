@@ -19,14 +19,9 @@ FROM node:20-bookworm-slim AS prod
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN groupadd -r botuser && useradd -r -g botuser botuser
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/locales ./locales
-
-RUN chown -R botuser:botuser /app
-USER botuser
 
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
