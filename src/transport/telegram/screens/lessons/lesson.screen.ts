@@ -40,9 +40,10 @@ export async function renderLessonScreen(
     meta = ctx.session.ui.lessonsById?.[screen.lessonId];
   }
 
-  const items = await withLoadingScreen(ctx, () =>
-    deps.lessons.listAssignmentsForStudent(telegramId, screen.lessonId),
-  );
+  const { items, additionalInstructions, materialLinks } =
+    await withLoadingScreen(ctx, () =>
+      deps.lessons.listAssignmentsForStudent(telegramId, screen.lessonId),
+    );
 
   await safeEditScreen(
     ctx,
@@ -54,11 +55,12 @@ export async function renderLessonScreen(
         lessonTitle: meta?.title ?? null,
         topic: meta?.topic ?? null,
         level: meta?.level ?? null,
+        additionalInstructions,
+        materialLinks,
         items,
       }),
       { lessonTitle: meta?.title ?? null },
     ),
-
     {
       reply_markup: lessonAssignmentsKeyboard(ctx.t, items),
       parse_mode: "HTML",

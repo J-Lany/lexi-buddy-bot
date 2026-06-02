@@ -13,3 +13,9 @@ export type LessonAssignmentListItem = {
   status: string | null;
   score: number | null;
 };
+
+export type LessonAssignmentsData = {
+  additionalInstructions: string | null;
+  materialLinks: string[];
+  items: LessonAssignmentListItem[];
+};

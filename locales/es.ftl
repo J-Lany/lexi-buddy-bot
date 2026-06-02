@@ -34,6 +34,7 @@ lessons-list-choose = Elige una lección
 lessons-list-paging-hint = 💡 Puedes desplazarte por la lista con los botones de abajo.
 
 # Lesson
+lesson-materials-label = 🔗 <b>Materiales</b>
 lesson-empty = Esta lección no tiene tareas todavía.
 lesson-empty-hint = 💡 Si esperas tareas, pregúntale a tu profesor.
 lesson-choose = Elige una tarea

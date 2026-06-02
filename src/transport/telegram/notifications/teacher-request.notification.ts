@@ -4,6 +4,7 @@ import { teacherRequestKeyboard } from "../ui/keyboards/teacher-request.keyboard
 import { uiMessage } from "../ui/helpers/ui.js";
 import { escapeHtml } from "../ui/helpers/html.js";
 import { i18n } from "../../../i18n/index.js";
+import { getUserLocale } from "../../../infra/session/get-user-locale.js";
 
 export type TeacherRequestNotification = {
   telegramId: number;
@@ -17,9 +18,10 @@ export class TeacherRequestNotificationSender {
 
   async send(payload: TeacherRequestNotification) {
     const chatId = payload.telegramId;
+    const locale = await getUserLocale(payload.telegramId);
     const t = (key: string, params?: Record<string, unknown>) =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      i18n.t("en", key, params as any);
+      i18n.t(locale, key, params as any);
 
     const teacherLabel =
       payload.teacherName && payload.teacherName.trim()

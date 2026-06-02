@@ -3,6 +3,7 @@ import type { BotContext } from "../context.js";
 import { uiMessage, uiSection } from "../ui/helpers/ui.js";
 import { escapeHtml } from "../ui/helpers/html.js";
 import { i18n } from "../../../i18n/index.js";
+import { getUserLocale } from "../../../infra/session/get-user-locale.js";
 import { lessonAssignedKeyboard } from "../ui/keyboards/lesson-assigned.keyboard.js";
 
 export type LessonAssignedNotification = {
@@ -17,9 +18,10 @@ export class LessonAssignedNotificationSender {
 
   async send(payload: LessonAssignedNotification) {
     const chatId = payload.telegramId;
+    const locale = await getUserLocale(payload.telegramId);
     const t = (key: string, params?: Record<string, unknown>) =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      i18n.t("en", key, params as any);
+      i18n.t(locale, key, params as any);
 
     const title = payload.lessonTitle?.trim() || t("nav-lessons");
 

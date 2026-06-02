@@ -20,6 +20,8 @@ export type GetStudentLessonsResponse = {
 };
 
 export type GetLessonAssignmentsResponse = {
+  additionalInstructions: string | null;
+  materialLinks: string[];
   items: Array<{
     assignmentId: number;
     type: string;

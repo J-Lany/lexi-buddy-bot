@@ -1,6 +1,6 @@
 import type { BackendApiService } from "../../infra/backend-api/backend-api.service.js";
 import type {
-  LessonAssignmentListItem,
+  LessonAssignmentsData,
   StudentLessonListItem,
 } from "./lessons.types.js";
 
@@ -22,8 +22,12 @@ export class LessonsService {
   async listAssignmentsForStudent(
     telegramId: number,
     lessonId: number,
-  ): Promise<LessonAssignmentListItem[]> {
+  ): Promise<LessonAssignmentsData> {
     const res = await this.backend.getLessonAssignments(telegramId, lessonId);
-    return res.items ?? [];
+    return {
+      additionalInstructions: res.additionalInstructions ?? null,
+      materialLinks: res.materialLinks ?? [],
+      items: res.items ?? [],
+    };
   }
 }

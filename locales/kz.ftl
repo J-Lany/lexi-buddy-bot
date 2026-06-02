@@ -34,6 +34,7 @@ lessons-list-choose = Сабақты таңда
 lessons-list-paging-hint = 💡 Тізімді төмендегі түймелер арқылы аударып көр.
 
 # Lesson
+lesson-materials-label = 🔗 <b>Материалдар</b>
 lesson-empty = Бұл сабақта әзірге тапсырмалар жоқ.
 lesson-empty-hint = 💡 Тапсырма күтсең — ұстазыңнан сұра.
 lesson-choose = Тапсырманы таңда

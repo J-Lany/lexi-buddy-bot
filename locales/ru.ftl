@@ -34,6 +34,7 @@ lessons-list-choose = Выбери урок
 lessons-list-paging-hint = 💡 Листай список с помощью кнопок ниже.
 
 # Lesson
+lesson-materials-label = 🔗 <b>Материалы</b>
 lesson-empty = В этом уроке пока нет заданий.
 lesson-empty-hint = 💡 Если ждёшь задания — уточни у преподавателя.
 lesson-choose = Выбери задание

@@ -34,6 +34,7 @@ lessons-list-choose = Choose a lesson
 lessons-list-paging-hint = 💡 You can scroll the list using the buttons below.
 
 # Lesson
+lesson-materials-label = 🔗 <b>Materials</b>
 lesson-empty = There are no tasks in this lesson yet.
 lesson-empty-hint = 💡 If you expect tasks, ask your teacher.
 lesson-choose = Choose a task
