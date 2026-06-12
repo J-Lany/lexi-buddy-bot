@@ -5,6 +5,7 @@ import { env } from "../config/env.js";
 import type { BotContext } from "../transport/telegram/context.js";
 import { setupSessionMiddleware } from "../transport/telegram/middlewares/session.middleware.js";
 import { setupErrorHandler } from "../transport/telegram/middlewares/error-handler.js";
+import { setupRateLimitMiddleware } from "../transport/telegram/middlewares/rate-limit.middleware.js";
 import { i18n } from "../i18n/index.js";
 
 import { registerStartRoutes } from "../transport/telegram/routes/start.routes.js";
@@ -40,6 +41,8 @@ export function createBot(container: Container) {
 
   bot.use(i18n);
 
+  setupRateLimitMiddleware(bot);
+
   bot.use(async (ctx, next) => {
     return await runWithRequestContext(
       {
@@ -49,8 +52,8 @@ export function createBot(container: Container) {
       },
       async () => {
         logInfo("update_received", {
-          text: ctx.msg?.text ?? null,
-          callback_data: ctx.callbackQuery?.data ?? null,
+          has_text: ctx.msg?.text != null,
+          has_callback: ctx.callbackQuery != null,
         });
 
         await next();

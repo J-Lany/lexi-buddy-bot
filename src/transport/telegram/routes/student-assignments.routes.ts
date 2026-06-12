@@ -124,7 +124,13 @@ export function registerStudentAssignmentsRoutes(
       return;
     }
 
-    const ok = await flow.answerText(ctx, ctx.message.text);
+    const text = ctx.message.text;
+    if (text.length > 4000) {
+      await sendChat(ctx, ctx.t("error-generic"));
+      return;
+    }
+
+    const ok = await flow.answerText(ctx, text);
     if (!ok) return;
 
     const fb = flow.takeFeedback(ctx);

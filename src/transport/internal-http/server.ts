@@ -1,5 +1,5 @@
 import type { Server } from "node:http";
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import express, {
   type NextFunction,
   type Request,
@@ -34,10 +34,18 @@ function requestIdMiddleware(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+function timingSafeTokenEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const requestId = resolveRequestId(req);
   const token = req.header("x-internal-token");
-  const ok = token === env.telegramBotInternalToken;
+  const ok =
+    token != null && timingSafeTokenEqual(token, env.telegramBotInternalToken);
 
   if (!ok) {
     logWarn("internal_http_unauthorized", {

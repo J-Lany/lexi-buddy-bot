@@ -8,8 +8,13 @@ export function setupErrorHandler(bot: Bot<BotContext>) {
       telegram_user_id: err.ctx?.from?.id ?? null,
       update_id: err.ctx?.update.update_id ?? null,
       chat_id: err.ctx?.chat?.id ?? null,
-      text: err.ctx?.msg?.text ?? null,
-      callback_data: err.ctx?.callbackQuery?.data ?? null,
+    });
+
+    const ctx = err.ctx;
+    if (!ctx) return;
+
+    void ctx.reply(ctx.t("error-generic"), { parse_mode: "HTML" }).catch(() => {
+      // User may have blocked the bot or context doesn't support reply
     });
   });
 }
