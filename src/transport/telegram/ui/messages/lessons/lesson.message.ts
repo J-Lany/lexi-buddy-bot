@@ -30,6 +30,28 @@ function materialsBlock(t: Translator, links: string[]): string | null {
   return `${t("lesson-materials-label")}\n${items.join("\n")}`;
 }
 
+function lessonDetailsBlock(
+  t: Translator,
+  params: {
+    additionalInstructions?: string | null | undefined;
+    materialLinks?: string[];
+  },
+): string | null {
+  const { additionalInstructions, materialLinks = [] } = params;
+
+  const instructions = additionalInstructions?.trim()
+    ? escapeHtml(additionalInstructions.trim())
+    : null;
+
+  const materials = materialsBlock(t, materialLinks);
+
+  const sections = [instructions, materials].filter(Boolean);
+
+  if (sections.length === 0) return null;
+
+  return `<blockquote expandable>${sections.join("\n\n")}</blockquote>`;
+}
+
 export function lessonMessage(
   t: Translator,
   params: {
@@ -55,18 +77,16 @@ export function lessonMessage(
   const title = lessonTitle?.trim() || `${t("nav-lessons")} #${lessonId}`;
   const meta = uiMeta([topic ?? null, level ?? null]);
 
-  const instructions = additionalInstructions?.trim()
-    ? `<blockquote expandable>${escapeHtml(additionalInstructions.trim())}</blockquote>`
-    : null;
-
-  const materials = materialsBlock(t, materialLinks);
+  const details = lessonDetailsBlock(t, {
+    additionalInstructions,
+    materialLinks,
+  });
 
   if (items.length === 0) {
     return uiMessage([
       uiTitle("📘", title),
       meta,
-      instructions,
-      materials,
+      details,
       "",
       t("lesson-empty"),
       "",
@@ -79,8 +99,7 @@ export function lessonMessage(
   return uiMessage([
     uiTitle("📘", title),
     meta,
-    instructions,
-    materials,
+    details,
     "",
     t("progress", { done, total: items.length }),
     "",
