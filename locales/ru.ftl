@@ -43,6 +43,7 @@ lesson-open = 💡 Открой урок, чтобы увидеть задани
 
 # Assignment intro
 assignment-title = 📝 <b>Задание</b>
+assignment-teacher-comment-title = Комментарий преподавателя
 assignment-vocab-title = <b>Словарь</b>
 assignment-vocab-synonyms-label = Синонимы:
 assignment-ready = Нажми <b>«🚀 Начать»</b>.
@@ -163,12 +164,13 @@ reg-success =
     🎉 Готово.
 
     Теперь преподаватель может найти тебя и назначить уроки.
-reg-failed = Что-то пошло не так при подключении.
-reg-reason-prefix = Причина:
-reg-try-again = /start — попробовать снова
+reg-failed = Что-то пошло не так при подключении. Попробуйте ещё раз — нажмите «Продолжить» ниже.
 reg-callback-ok = Хорошо
 reg-cancel-short = Хорошо. Если передумаешь — нажми /start.
 reg-restore-failed = ⚠️ Не удалось восстановить регистрацию. Нажми /start ещё раз.
+reg-lookup-failed = Мы подключили ваш аккаунт, но пока не смогли его подтвердить. Нажмите «Продолжить», чтобы попробовать снова.
+reg-consent-title = <b>Прежде чем продолжить</b>
+reg-consent-text = Продолжая использовать Lexi Buddy bot, вы соглашаетесь с Политикой конфиденциальности и принимаете условия Пользовательского соглашения.
 
 # Invites
 invite-in-flight = Секунду…
@@ -201,6 +203,10 @@ kb-my-lessons = 📖 Мои уроки
 kb-help = ❓ Помощь
 kb-join = ✨ Присоединиться
 kb-not-now = Не сейчас
+kb-consent-privacy = 📄 Политика конфиденциальности
+kb-consent-terms = 📄 Пользовательское соглашение
+kb-consent-continue = Продолжить
+kb-lookup-retry = Повторить
 kb-accept = Принять
 kb-decline = Отклонить
 kb-begin = 🚀 Начать

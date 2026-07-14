@@ -43,6 +43,7 @@ lesson-open = 💡 Open the lesson to see the tasks
 
 # Assignment intro
 assignment-title = 📝 <b>Task</b>
+assignment-teacher-comment-title = Teacher's comment
 assignment-vocab-title = <b>Vocabulary</b>
 assignment-vocab-synonyms-label = Synonyms:
 assignment-ready = Press <b>"🚀 Start"</b>.
@@ -163,12 +164,13 @@ reg-success =
     🎉 Done.
 
     Now your teacher can find you and assign lessons.
-reg-failed = Something went wrong while connecting.
-reg-reason-prefix = Reason:
-reg-try-again = /start — try again
+reg-failed = Something went wrong while connecting. Please try again — tap Continue below.
 reg-callback-ok = Ok
 reg-cancel-short = Ok. If you change your mind — type /start.
 reg-restore-failed = ⚠️ Could not restore registration. Press /start again.
+reg-lookup-failed = We connected your account, but couldn't confirm it yet. Please tap Continue to try again.
+reg-consent-title = <b>Before you continue</b>
+reg-consent-text = By continuing to use the Lexi Buddy bot, you agree to the Privacy Policy and accept the Terms of Service.
 
 # Invites
 invite-in-flight = Just a moment…
@@ -201,6 +203,10 @@ kb-my-lessons = 📖 My lessons
 kb-help = ❓ Help
 kb-join = ✨ Join
 kb-not-now = Not now
+kb-consent-privacy = 📄 Privacy Policy
+kb-consent-terms = 📄 Terms of Service
+kb-consent-continue = Continue
+kb-lookup-retry = Try again
 kb-accept = Accept
 kb-decline = Decline
 kb-begin = 🚀 Start

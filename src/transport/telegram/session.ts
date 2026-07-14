@@ -64,6 +64,13 @@ export type SessionData = {
   reg?:
     | {
         draft: RegistrationDraft;
+        // Guards against a double "Continue" tap (or two near-simultaneous
+        // callback deliveries) triggering two register requests.
+        processing?: boolean;
+        // Set once /auth/register/telegram has succeeded. From this point on,
+        // a Continue tap may only retry resolving the user — it must never
+        // call the register endpoint again for this draft.
+        registrationCompleted?: boolean;
       }
     | undefined;
 
@@ -74,6 +81,11 @@ export type SessionData = {
   ui: {
     screenMessageId?: number | undefined;
     bannerText?: string | null | undefined;
+    // Assignment ids for which the "extra" intro messages (teacher comment
+    // and/or overflow vocab, sent as separate messages) have already been
+    // shown this session — avoids resending them every time the same
+    // assignment intro screen is reopened.
+    introExtrasSentFor?: number[] | undefined;
     lessonsById?:
       | Record<
           number,

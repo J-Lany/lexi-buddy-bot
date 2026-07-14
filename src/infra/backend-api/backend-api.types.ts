@@ -62,6 +62,7 @@ export type InternalAssignmentDto = {
     level: string | null;
     ageCategory: string | null;
     topic: string | null;
+    additionalInstructions: string | null;
   };
   questions: InternalAssignmentQuestionDto[];
   vocab: AssignmentVocabItemDto[];

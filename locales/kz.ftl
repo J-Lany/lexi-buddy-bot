@@ -43,6 +43,7 @@ lesson-open = 💡 Тапсырмаларды көру үшін сабақты �
 
 # Assignment intro
 assignment-title = 📝 <b>Тапсырма</b>
+assignment-teacher-comment-title = Ұстаздың пікірі
 assignment-vocab-title = <b>Сөздік</b>
 assignment-vocab-synonyms-label = Синонимдер:
 assignment-ready = <b>«🚀 Бастау»</b> түймесін бас.
@@ -163,12 +164,13 @@ reg-success =
     🎉 Дайын.
 
     Енді ұстаз сені таба алады және сабақтар тағайындай алады.
-reg-failed = Қосылу кезінде бірдеңе дұрыс болмады.
-reg-reason-prefix = Себеп:
-reg-try-again = /start — қайтадан көру
+reg-failed = Қосылу кезінде бірдеңе дұрыс болмады. Қайталап көріңіз — төмендегі «Жалғастыру» түймесін басыңыз.
 reg-callback-ok = Жарайды
 reg-cancel-short = Жарайды. Ойың өзгерсе — /start теріп жаз.
 reg-restore-failed = ⚠️ Тіркеуді қалпына келтіру мүмкін болмады. /start қайта бас.
+reg-lookup-failed = Аккаунтыңызды қосылды, бірақ оны әлі растай алмадық. Қайталап көру үшін «Жалғастыру» түймесін басыңыз.
+reg-consent-title = <b>Жалғастырмас бұрын</b>
+reg-consent-text = Lexi Buddy bot-ты пайдалануды жалғастыра отырып, сіз Құпиялылық саясатымен келісесіз және Пайдаланушы келісімінің шарттарын қабылдайсыз.
 
 # Invites
 invite-in-flight = Бір секунд…
@@ -201,6 +203,10 @@ kb-my-lessons = 📖 Менің сабақтарым
 kb-help = ❓ Анықтама
 kb-join = ✨ Қосылу
 kb-not-now = Қазір емес
+kb-consent-privacy = 📄 Құпиялылық саясаты
+kb-consent-terms = 📄 Пайдаланушы келісімі
+kb-consent-continue = Жалғастыру
+kb-lookup-retry = Қайталау
 kb-accept = Қабылдау
 kb-decline = Бас тарту
 kb-begin = 🚀 Бастау

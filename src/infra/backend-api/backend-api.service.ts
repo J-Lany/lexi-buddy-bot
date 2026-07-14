@@ -11,7 +11,7 @@ import {
   setRequestUserId,
 } from "../../observability/request-context.js";
 
-import type { RegistrationDraft } from "../../domain/registration/registration.types.js";
+import type { ConsentedRegistrationDraft } from "../../domain/registration/registration.types.js";
 
 import {
   InviteAlreadyProcessedError,
@@ -144,13 +144,17 @@ export class BackendApiService {
     }
   }
 
-  async registerTelegramStudent(draft: RegistrationDraft) {
+  async registerTelegramStudent(
+    draft: ConsentedRegistrationDraft,
+  ): Promise<unknown> {
     try {
       const res = await this.http.post("/auth/register/telegram", {
         telegramId: draft.telegramId,
         username: draft.username ?? null,
         firstName: draft.firstName,
         lastName: draft.lastName,
+        consentAccepted: draft.consentAccepted,
+        consentVersion: draft.consentVersion,
       });
       return res.data;
     } catch (e: unknown) {
