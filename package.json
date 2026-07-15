@@ -11,7 +11,7 @@
     "lint": "eslint . --ext .ts",
     "format": "prettier --write .",
     "prepare": "husky install",
-    "test": "tsx --test $(find src -name '*.test.ts')"
+    "test": "node --import ./test/setup-env.mjs --import tsx --test $(find src -name '*.test.ts')"
   },
   "dependencies": {
     "@eslint/js": "^9.38.0",
