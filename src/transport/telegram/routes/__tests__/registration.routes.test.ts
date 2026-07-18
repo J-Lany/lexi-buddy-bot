@@ -7,6 +7,18 @@ import { createFakeBot } from "./helpers/fake-bot.js";
 import { createMockCtx } from "./helpers/mock-ctx.js";
 import { createFakeRegistrationService } from "./helpers/fake-registration-service.js";
 
+type InlineKeyboardLike = {
+  inline_keyboard: Array<Array<{ text: string; callback_data?: string }>>;
+};
+
+function hasCallbackButton(markup: unknown, callbackData: string): boolean {
+  const kb = markup as InlineKeyboardLike | undefined;
+  if (!kb?.inline_keyboard) return false;
+  return kb.inline_keyboard
+    .flat()
+    .some((btn) => btn.callback_data === callbackData);
+}
+
 function setup(
   regServiceOptions: Parameters<typeof createFakeRegistrationService>[0] = {},
 ) {
@@ -190,8 +202,10 @@ test("a register API error does not leak the raw error message to the user", asy
   assert.ok(shown.includes("reg-failed"));
 });
 
-test("after a register API error (not yet completed), the consent screen and draft are still usable and retry re-attempts registration", async () => {
-  const { ctx } = createMockCtx({ session: { reg: { draft: DRAFT } } });
+test("after a register API error (not yet completed), the retry message carries a working Continue button and retry re-attempts registration", async () => {
+  const { ctx, editMessageTextCalls, replyCalls } = createMockCtx({
+    session: { reg: { draft: DRAFT } },
+  });
 
   let attempt = 0;
   const { callbackHandlers, registerCalls } = setup({
@@ -204,6 +218,7 @@ test("after a register API error (not yet completed), the consent screen and dra
 
   const handler = callbackHandlers.get("reg_consent_continue")!;
 
+  // First click: register() throws before anything was committed.
   await handler(ctx);
   assert.equal(registerCalls.length, 1);
   assert.ok(
@@ -213,10 +228,131 @@ test("after a register API error (not yet completed), the consent screen and dra
   assert.equal(ctx.session.reg?.processing, false);
   assert.equal(ctx.session.reg?.registrationCompleted, undefined);
 
+  // The failure text must not be a separate, unbuttoned reply — the button
+  // it promises ("press Continue below") must be attached to the very
+  // message carrying that text. (The mock's very first screen render — the
+  // "loading" screen — necessarily goes through ctx.reply since there is no
+  // prior message yet to edit; that's unrelated to this bug.)
+  assert.ok(
+    !replyCalls.some((c) => c.text.includes("reg-failed")),
+    "the failure must not be sent as a second, unbuttoned message",
+  );
+  const failureCall = editMessageTextCalls.find((c) =>
+    c.text.includes("reg-failed"),
+  );
+  assert.ok(failureCall, "reg-failed text must have been shown");
+  assert.ok(
+    hasCallbackButton(
+      failureCall!.options.reply_markup,
+      "reg_consent_continue",
+    ),
+    "the message showing reg-failed must carry a working Continue button",
+  );
+
+  // Second click on that same (real, working) button: a genuine retry.
   await handler(ctx);
   assert.equal(registerCalls.length, 2);
   assert.equal(ctx.session.userId, 42);
   assert.equal(ctx.session.reg, undefined);
+});
+
+test("data is saved (register succeeds) but the Telegram confirmation edit fails: retry recovers via the lookup screen, without re-registering", async () => {
+  const { ctx, editMessageTextCalls } = createMockCtx({
+    session: { reg: { draft: DRAFT } },
+  });
+
+  let failNextSuccessEdit = true;
+  const originalEdit = ctx.api.editMessageText;
+  ctx.api.editMessageText = (async (
+    chatId: number,
+    messageId: number,
+    text: string,
+    options?: Record<string, unknown>,
+  ) => {
+    if (text === "reg-success" && failNextSuccessEdit) {
+      failNextSuccessEdit = false;
+      // Deliberately NOT "message is not modified" / "can't be edited", so
+      // safeEditScreen treats this as a real, rethrown failure.
+      throw new Error("simulated Telegram outage");
+    }
+    return originalEdit(chatId, messageId, text, options);
+  }) as typeof ctx.api.editMessageText;
+
+  const { callbackHandlers, registerCalls, findByTelegramIdCalls } = setup();
+  const handler = callbackHandlers.get("reg_consent_continue")!;
+
+  // First click: the backend registration call itself succeeds (the row is
+  // committed), but sending the "reg-success" confirmation throws.
+  await handler(ctx);
+
+  assert.equal(registerCalls.length, 1, "registration happened exactly once");
+  assert.equal(
+    ctx.session.userId,
+    42,
+    "the session already reflects the committed registration",
+  );
+  assert.equal(
+    ctx.session.reg?.registrationCompleted,
+    true,
+    "registrationCompleted must survive the failed confirmation send",
+  );
+  assert.equal(ctx.session.reg?.processing, false);
+
+  const lookupPendingCall = editMessageTextCalls.find((c) =>
+    c.text.includes("reg-lookup-failed"),
+  );
+  assert.ok(
+    lookupPendingCall,
+    "must recover to the lookup-retry screen, not the consent screen",
+  );
+  assert.ok(
+    !editMessageTextCalls.some((c) => c.text.includes("reg-consent-title")),
+    "must never re-offer the consent screen once registration already succeeded",
+  );
+
+  // Second click (retry): must only re-confirm, never re-register.
+  await handler(ctx);
+
+  assert.equal(
+    registerCalls.length,
+    1,
+    "register must never be called a second time",
+  );
+  assert.equal(findByTelegramIdCalls.length, 1);
+  assert.equal(ctx.session.userId, 42);
+  assert.equal(ctx.session.reg, undefined);
+  assert.ok(
+    editMessageTextCalls.some((c) => c.text.includes("reg-success")),
+    "the confirmation is finally shown once the edit succeeds",
+  );
+});
+
+test("a redelivered callback processed through two independent contexts never duplicates the registered user (backend idempotency covers what the in-memory guard cannot)", async () => {
+  const { callbackHandlers, registerCalls } = setup();
+
+  // Simulates Telegram redelivering the same callback_query as two separate
+  // updates: each gets its own session object read from storage before
+  // either write lands, so the in-process `processing` guard can't see the
+  // other's mutation. This is a real gap in the bot's own guard — safety
+  // here comes entirely from the backend's find-or-create-by-telegramId
+  // idempotency (lexi-buddy-backend/src/auth/auth.service.ts).
+  const ctxA = createMockCtx({ session: { reg: { draft: DRAFT } } }).ctx;
+  const ctxB = createMockCtx({ session: { reg: { draft: DRAFT } } }).ctx;
+
+  const handler = callbackHandlers.get("reg_consent_continue")!;
+  await Promise.all([handler(ctxA), handler(ctxB)]);
+
+  assert.equal(
+    registerCalls.length,
+    2,
+    "both independent contexts do call register — the bot-level guard alone cannot prevent this",
+  );
+  // Our fake backend always resolves to the same id, mirroring the real
+  // backend's idempotent find-or-create-by-telegramId contract.
+  assert.equal(ctxA.session.userId, 42);
+  assert.equal(ctxB.session.userId, 42);
+  assert.equal(ctxA.session.reg, undefined);
+  assert.equal(ctxB.session.reg, undefined);
 });
 
 test("reg_consent_continue without any active session shows reg-restore-failed and never registers", async () => {

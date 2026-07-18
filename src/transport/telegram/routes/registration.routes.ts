@@ -67,11 +67,18 @@ async function showLookupPendingScreen(ctx: BotContext) {
   });
 }
 
+async function showRegistrationFailedScreen(ctx: BotContext) {
+  await safeEditScreen(ctx, ctx.t("reg-failed"), {
+    reply_markup: registrationConsentKeyboard(ctx.t, legalUrls),
+  });
+}
+
 async function completeRegistration(ctx: BotContext, userId: number) {
   ctx.session.userId = userId;
   setRequestUserId(userId);
-  delete ctx.session.reg;
+
   await safeEditScreen(ctx, ctx.t("reg-success"));
+  delete ctx.session.reg;
 }
 
 export function registerRegistrationRoutes(
@@ -98,10 +105,6 @@ export function registerRegistrationRoutes(
     });
   });
 
-  // Entry point: "✨ Join". A *stale* Join button — shown before registration
-  // already completed in this flow, or while it's still in flight — must
-  // never rebuild/overwrite the registration session, or it could reopen a
-  // path that calls the register endpoint again.
   bot.callbackQuery("reg_begin", async (ctx) => {
     const reg = ctx.session.reg;
 
@@ -132,9 +135,6 @@ export function registerRegistrationRoutes(
   });
 
   bot.callbackQuery("reg_consent_continue", async (ctx) => {
-    // A stale "Continue" button (from before /cancel, reg_cancel, or a fresh
-    // /start) must not be able to register anyone: only an *active* session
-    // draft counts here — unlike reg_begin, there is deliberately no fallback
     // to buildDraftFromContext.
     const reg = ctx.session.reg;
     if (!reg) {
@@ -204,11 +204,10 @@ export function registerRegistrationRoutes(
       }
 
       // Never surface e.message to the user — it may contain backend/HTTP
-      // internals. Return them to a working consent screen (draft still
-      // intact) plus a safe, localized notice, so they can retry without
-      // needing /start again.
-      await showConsentScreen(ctx);
-      await ctx.reply(ctx.t("reg-failed"), { parse_mode: "HTML" });
+      // internals. Draft is still intact, so show one message with the
+      // retry button attached, so they can retry without needing /start
+      // again.
+      await showRegistrationFailedScreen(ctx);
     }
   });
 
