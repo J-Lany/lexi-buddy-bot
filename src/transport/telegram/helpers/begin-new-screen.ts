@@ -1,9 +1,10 @@
 import type { BotContext } from "../context.js";
 import type { NavScreen } from "../session.js";
 import { isAssignmentScreenName, navPeek } from "./nav.js";
+import { clearTrackedScreenMessage } from "./screen-message-state.js";
 
 export function beginNewScreen(ctx: BotContext) {
-  ctx.session.ui.screenMessageId = undefined;
+  clearTrackedScreenMessage(ctx);
 }
 
 export function ensureScreenMode(ctx: BotContext, next: NavScreen) {

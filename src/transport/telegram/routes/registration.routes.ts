@@ -11,6 +11,7 @@ import { BOT_CONSENT_VERSION } from "../../../domain/registration/registration.t
 import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
+import { setTrackedScreenMessage } from "../helpers/screen-message-state.js";
 import { ack } from "../helpers/ack.js";
 import { startRegistrationKeyboard } from "../ui/keyboards/registration.keyboard.js";
 import {
@@ -21,6 +22,8 @@ import { registrationConsentMessage } from "../ui/messages/registration-consent.
 import { setRequestUserId } from "../../../observability/request-context.js";
 import { logError } from "../../../observability/logger.js";
 import { legalUrls } from "../../../config/legal-urls.js";
+import { env } from "../../../config/env.js";
+import { sendMediaOrFallback } from "../helpers/media/send-media-or-fallback.js";
 
 const LOOKUP_RETRY_ATTEMPTS = 3;
 const LOOKUP_RETRY_DELAY_MS = 300;
@@ -77,7 +80,23 @@ async function completeRegistration(ctx: BotContext, userId: number) {
   ctx.session.userId = userId;
   setRequestUserId(userId);
 
-  await safeEditScreen(ctx, ctx.t("reg-success"));
+  const text = ctx.t("reg-success");
+
+  await sendMediaOrFallback({
+    api: ctx.api,
+    chatId: ctx.chat!.id,
+    fileId: env.studentMedia.welcomeGifFileId,
+    kind: "animation",
+    caption: text,
+    options: { parse_mode: "HTML" },
+    previousMessageId: ctx.session.ui.screenMessageId,
+    onSent: (id) => {
+      setTrackedScreenMessage(ctx, id, "media");
+    },
+    fallback: () => safeEditScreen(ctx, text),
+    event: "student_welcome",
+  });
+
   delete ctx.session.reg;
 }
 

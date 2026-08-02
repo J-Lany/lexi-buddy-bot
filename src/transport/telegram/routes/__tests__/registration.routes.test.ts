@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 
 import { registerRegistrationRoutes } from "../registration.routes.js";
 import { BOT_CONSENT_VERSION } from "../../../../domain/registration/registration.types.js";
+import { env } from "../../../../config/env.js";
 import { createFakeBot } from "./helpers/fake-bot.js";
 import { createMockCtx } from "./helpers/mock-ctx.js";
 import { createFakeRegistrationService } from "./helpers/fake-registration-service.js";
+import { withEnvOverride } from "./helpers/with-env-override.js";
 
 type InlineKeyboardLike = {
   inline_keyboard: Array<Array<{ text: string; callback_data?: string }>>;
@@ -449,4 +451,62 @@ test("a lookup-step network error after registrationCompleted shows the lookup-r
   assert.equal(ctx.session.reg?.registrationCompleted, true);
   assert.ok(allShownText().some((text) => text.includes("reg-lookup-failed")));
   assert.ok(!allShownText().some((text) => text.includes("reg-consent-title")));
+});
+
+// ─── welcome GIF (TELEGRAM_GIF_STUDENT_WELCOME_FILE_ID) ──────────────────
+
+test("Continue with the welcome GIF env set sends reg-success as an animation, not a second text message", async () => {
+  await withEnvOverride(
+    env.studentMedia,
+    { welcomeGifFileId: "test_welcome_anim" },
+    async () => {
+      const { callbackHandlers } = setup();
+      const { ctx, sendAnimationCalls, allShownText } = createMockCtx({
+        session: { reg: { draft: DRAFT }, ui: { screenMessageId: 777 } },
+      });
+
+      await callbackHandlers.get("reg_consent_continue")!(ctx);
+
+      assert.equal(sendAnimationCalls.length, 1);
+      assert.equal(sendAnimationCalls[0]?.fileId, "test_welcome_anim");
+      assert.ok(
+        String(sendAnimationCalls[0]?.options.caption).includes("reg-success"),
+      );
+      assert.ok(
+        !allShownText().some((text) => text.includes("reg-success")),
+        "must not also send reg-success as a separate text message",
+      );
+      assert.equal(ctx.session.ui.screenMessageKind, "media");
+    },
+  );
+});
+
+test("Continue with the welcome GIF env set deletes the previous tracked screen message and re-tracks the new one", async () => {
+  await withEnvOverride(
+    env.studentMedia,
+    { welcomeGifFileId: "test_welcome_anim" },
+    async () => {
+      const { callbackHandlers } = setup();
+      const { ctx, deleteMessageCalls } = createMockCtx({
+        session: { reg: { draft: DRAFT }, ui: { screenMessageId: 777 } },
+      });
+
+      await callbackHandlers.get("reg_consent_continue")!(ctx);
+
+      assert.deepEqual(deleteMessageCalls, [{ chatId: 999, messageId: 777 }]);
+      assert.notEqual(ctx.session.ui.screenMessageId, 777);
+    },
+  );
+});
+
+test("Continue without the welcome GIF env set never calls sendAnimation (unchanged text-only behavior)", async () => {
+  const { callbackHandlers } = setup();
+  const { ctx, sendAnimationCalls, allShownText } = createMockCtx({
+    session: { reg: { draft: DRAFT } },
+  });
+
+  await callbackHandlers.get("reg_consent_continue")!(ctx);
+
+  assert.equal(sendAnimationCalls.length, 0);
+  assert.ok(allShownText().some((text) => text.includes("reg-success")));
 });

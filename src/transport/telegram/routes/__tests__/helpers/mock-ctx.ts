@@ -13,15 +13,55 @@ export type ReplyCall = {
   options: Record<string, unknown> | undefined;
 };
 
+export type SendAnimationCall = {
+  chatId: number | string;
+  fileId: string;
+  options: Record<string, unknown>;
+};
+
+export type SendVideoCall = {
+  chatId: number | string;
+  fileId: string;
+  options: Record<string, unknown>;
+};
+
+export type DeleteMessageCall = {
+  chatId: number | string;
+  messageId: number;
+};
+
 export function createMockCtx(
   overrides: {
     from?: Partial<NonNullable<BotContext["from"]>>;
     session?: Partial<SessionData>;
+    callbackQuery?: {
+      id?: string;
+      data?: string;
+      message?: { message_id: number };
+    };
+    /** For message-type-filtered handlers (e.g. bot.on("message:animation", ...)). */
+    message?: Record<string, unknown>;
+    /** Set to have sendAnimation/sendVideo throw instead of succeed — e.g. to simulate a bad file_id. */
+    sendAnimationImpl?: (
+      chatId: number | string,
+      fileId: string,
+      options: Record<string, unknown>,
+    ) => Promise<{ message_id: number }>;
+    sendVideoImpl?: (
+      chatId: number | string,
+      fileId: string,
+      options: Record<string, unknown>,
+    ) => Promise<{ message_id: number }>;
   } = {},
 ) {
   const editMessageTextCalls: EditMessageTextCall[] = [];
   const replyCalls: ReplyCall[] = [];
   const answerCallbackQueryCalls: unknown[] = [];
+  const sendAnimationCalls: SendAnimationCall[] = [];
+  const sendVideoCalls: SendVideoCall[] = [];
+  const deleteMessageCalls: DeleteMessageCall[] = [];
+
+  let nextMediaMessageId = 2000;
 
   const session: SessionData = {
     userId: undefined,
@@ -40,7 +80,8 @@ export function createMockCtx(
       ...overrides.from,
     },
     chat: { id: 999, type: "private" },
-    callbackQuery: { id: "cbq-1", data: "x" },
+    callbackQuery: { id: "cbq-1", data: "x", ...overrides.callbackQuery },
+    message: overrides.message,
     session,
     t: ((key: string) => key) as BotContext["t"],
     api: {
@@ -51,6 +92,32 @@ export function createMockCtx(
         options: Record<string, unknown> = {},
       ) => {
         editMessageTextCalls.push({ chatId, messageId, text, options });
+      },
+      sendAnimation: async (
+        chatId: number | string,
+        fileId: string,
+        options: Record<string, unknown> = {},
+      ) => {
+        sendAnimationCalls.push({ chatId, fileId, options });
+        if (overrides.sendAnimationImpl) {
+          return overrides.sendAnimationImpl(chatId, fileId, options);
+        }
+        return { message_id: nextMediaMessageId++ };
+      },
+      sendVideo: async (
+        chatId: number | string,
+        fileId: string,
+        options: Record<string, unknown> = {},
+      ) => {
+        sendVideoCalls.push({ chatId, fileId, options });
+        if (overrides.sendVideoImpl) {
+          return overrides.sendVideoImpl(chatId, fileId, options);
+        }
+        return { message_id: nextMediaMessageId++ };
+      },
+      deleteMessage: async (chatId: number | string, messageId: number) => {
+        deleteMessageCalls.push({ chatId, messageId });
+        return true;
       },
     },
     reply: async (text: string, options?: Record<string, unknown>) => {
@@ -67,6 +134,9 @@ export function createMockCtx(
     editMessageTextCalls,
     replyCalls,
     answerCallbackQueryCalls,
+    sendAnimationCalls,
+    sendVideoCalls,
+    deleteMessageCalls,
     /** All text shown to the user across edited screens and replies, in order. */
     allShownText(): string[] {
       return [

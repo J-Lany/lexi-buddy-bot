@@ -3,6 +3,8 @@ import os from "node:os";
 
 import { env } from "../config/env.js";
 import { logError, logInfo, logWarn } from "../observability/logger.js";
+import { createUpdateTracker } from "../observability/update-tracker.js";
+import { startHeartbeat } from "../observability/heartbeat.js";
 
 import { createContainer } from "./container.js";
 import { createBot } from "./bot.js";
@@ -12,6 +14,11 @@ import { setupBotUi } from "../transport/telegram/setup/setup-bot-ui.js";
 import { LessonAssignedNotificationSender } from "../transport/telegram/notifications/lesson-assigned.notification.js";
 
 let isShuttingDown = false;
+
+// Amvera's log viewer only shows what stdout/stderr actually produce — with
+// no periodic log, an idle bot (no updates, no errors) is indistinguishable
+// from a dead one. This is the cheapest signal that closes that gap.
+const HEARTBEAT_INTERVAL_MS = 5 * 60_000;
 
 function fatalExit(event: string, payload: unknown) {
   logError(event, payload);
@@ -47,12 +54,22 @@ async function main() {
     started_at: new Date().toISOString(),
   });
 
+  if (env.mediaRegistration.invalidAdminIdEntries.length > 0) {
+    logWarn("telegram_media_admin_ids_invalid_entries", {
+      invalid_count: env.mediaRegistration.invalidAdminIdEntries.length,
+      invalid_entries: env.mediaRegistration.invalidAdminIdEntries,
+    });
+  }
+
   const container = createContainer();
-  const bot = createBot(container);
+  const tracker = createUpdateTracker();
+  const bot = createBot(container, tracker);
+  const heartbeatTimer = startHeartbeat(tracker, HEARTBEAT_INTERVAL_MS);
 
   function handleShutdown(signal: string) {
     if (isShuttingDown) return;
     isShuttingDown = true;
+    clearInterval(heartbeatTimer);
     logInfo("signal_received", { signal });
 
     const timeout = setTimeout(() => {
@@ -95,7 +112,14 @@ async function main() {
   logInfo("telegram_polling_starting");
 
   try {
-    await bot.start();
+    await bot.start({
+      // Fires after init/deleteWebhook succeed and right before grammY
+      // enters its long-polling loop — not proof that a first getUpdates
+      // call has actually completed.
+      onStart: (botInfo) => {
+        logInfo("telegram_polling_loop_entered", { bot_id: botInfo.id });
+      },
+    });
 
     if (isShuttingDown) {
       await closeServer(internalHttpServer);

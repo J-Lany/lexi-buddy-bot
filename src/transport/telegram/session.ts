@@ -80,6 +80,10 @@ export type SessionData = {
 
   ui: {
     screenMessageId?: number | undefined;
+    // Absent for sessions created before this field existed — treated as
+    // "unknown", falling back to editMessageText + defensive error handling
+    // in safeEditScreen instead of the explicit media/text replace path.
+    screenMessageKind?: "text" | "media" | undefined;
     bannerText?: string | null | undefined;
     // Assignment ids for which the "extra" intro messages (teacher comment
     // and/or overflow vocab, sent as separate messages) have already been

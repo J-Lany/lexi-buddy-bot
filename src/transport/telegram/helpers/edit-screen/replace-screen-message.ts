@@ -1,5 +1,6 @@
 import type { BotContext } from "../../context.js";
 import type { InlineKeyboardMarkup } from "grammy/types";
+import { setTrackedScreenMessage } from "../screen-message-state.js";
 
 type ScreenEditOptions = {
   reply_markup?: InlineKeyboardMarkup;
@@ -30,7 +31,7 @@ export async function replaceScreenMessage(
     ...options,
     parse_mode: options.parse_mode ?? "HTML",
   });
-  ctx.session.ui.screenMessageId = msg.message_id;
+  setTrackedScreenMessage(ctx, msg.message_id, "text");
 
   if (chatId && previousMessageId && previousMessageId !== msg.message_id) {
     await ctx.api.deleteMessage(chatId, previousMessageId).catch(() => {});
