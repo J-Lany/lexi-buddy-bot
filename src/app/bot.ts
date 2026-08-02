@@ -6,6 +6,7 @@ import type { BotContext } from "../transport/telegram/context.js";
 import { setupSessionMiddleware } from "../transport/telegram/middlewares/session.middleware.js";
 import { setupErrorHandler } from "../transport/telegram/middlewares/error-handler.js";
 import { setupRateLimitMiddleware } from "../transport/telegram/middlewares/rate-limit.middleware.js";
+import { createTracingMiddleware } from "../transport/telegram/middlewares/tracing.middleware.js";
 import { i18n } from "../i18n/index.js";
 
 import { registerStartRoutes } from "../transport/telegram/routes/start.routes.js";
@@ -18,12 +19,11 @@ import { registerStudentAssignmentsRoutes } from "../transport/telegram/routes/s
 import { registerLanguageRoutes } from "../transport/telegram/routes/language.routes.js";
 import { registerMediaRegistrationRoutes } from "../transport/telegram/routes/media-registration.routes.js";
 
-import { logInfo } from "../observability/logger.js";
-import { runWithRequestContext } from "../observability/request-context.js";
+import type { UpdateTracker } from "../observability/update-tracker.js";
 
 import type { Container } from "./container.js";
 
-export function createBot(container: Container) {
+export function createBot(container: Container, tracker: UpdateTracker) {
   const bot = new Bot<BotContext>(env.telegramBotToken, {
     client: {
       timeoutSeconds: 20,
@@ -38,29 +38,13 @@ export function createBot(container: Container) {
     }),
   );
 
+  bot.use(createTracingMiddleware(tracker));
+
   setupSessionMiddleware(bot);
 
   bot.use(i18n);
 
   setupRateLimitMiddleware(bot);
-
-  bot.use(async (ctx, next) => {
-    return await runWithRequestContext(
-      {
-        updateId: ctx.update.update_id ?? null,
-        telegramUserId: ctx.from?.id ?? null,
-        userId: ctx.session.userId ?? null,
-      },
-      async () => {
-        logInfo("update_received", {
-          has_text: ctx.msg?.text != null,
-          has_callback: ctx.callbackQuery != null,
-        });
-
-        await next();
-      },
-    );
-  });
 
   setupErrorHandler(bot);
 
