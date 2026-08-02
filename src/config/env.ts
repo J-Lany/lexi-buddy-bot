@@ -40,7 +40,7 @@ export const env = {
       process.env.TELEGRAM_GIF_STUDENT_MAIN_MENU_FILE_ID,
     ),
     teacherRequestAcceptedGifFileId: normalizeOptionalEnv(
-      process.env.TELEGRAM_GIF_STUDENT_TEACHER_REQUEST_ACCEPTED_FILE_ID,
+      process.env.TELEGRAM_GIF_TEACHER_REQUEST_ACCEPTED_FILE_ID,
     ),
     lessonAssignedGifFileId: normalizeOptionalEnv(
       process.env.TELEGRAM_GIF_STUDENT_LESSON_ASSIGNED_FILE_ID,
@@ -49,7 +49,7 @@ export const env = {
       process.env.TELEGRAM_VIDEO_STUDENT_TASK_RESULT_LOW_FILE_ID,
     ),
     taskResultPositiveVideoFileId: normalizeOptionalEnv(
-      process.env.TELEGRAM_VIDEO_STUDENT_TASK_RESULT_POSITIVE_FILE_ID,
+      process.env.TELEGRAM_VIDEO_STUDENT_RESULT_POSITIVE_FILE_ID,
     ),
   },
 
