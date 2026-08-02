@@ -476,6 +476,7 @@ test("Continue with the welcome GIF env set sends reg-success as an animation, n
         !allShownText().some((text) => text.includes("reg-success")),
         "must not also send reg-success as a separate text message",
       );
+      assert.equal(ctx.session.ui.screenMessageKind, "media");
     },
   );
 });

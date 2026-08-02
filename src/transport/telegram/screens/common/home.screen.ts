@@ -8,6 +8,7 @@ import { homeMessage } from "../../ui/messages/home.messages.js";
 import { mainInlineKeyboard } from "../../ui/keyboards/main-inline.keyboard.js";
 import { env } from "../../../../config/env.js";
 import { sendMediaOrFallback } from "../../helpers/media/send-media-or-fallback.js";
+import { setTrackedScreenMessage } from "../../helpers/screen-message-state.js";
 
 export async function renderHomeScreen(
   ctx: BotContext,
@@ -38,7 +39,7 @@ export async function renderHomeScreen(
     options,
     previousMessageId: ctx.session.ui.screenMessageId,
     onSent: (id) => {
-      ctx.session.ui.screenMessageId = id;
+      setTrackedScreenMessage(ctx, id, "media");
     },
     fallback: () => safeEditScreen(ctx, text, options),
     event: "student_main_menu",

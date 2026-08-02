@@ -9,7 +9,8 @@ export function getEditErrorKind(
   if (
     msg.includes("message to edit not found") ||
     msg.includes("can't be edited") ||
-    msg.includes("message can't be edited")
+    msg.includes("message can't be edited") ||
+    msg.includes("there is no text in the message to edit")
   ) {
     return "not_editable";
   }

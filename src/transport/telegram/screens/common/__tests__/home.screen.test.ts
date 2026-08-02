@@ -18,6 +18,7 @@ test("home screen without the main menu GIF env set — edits in place as before
   assert.equal(sendAnimationCalls.length, 0);
   assert.equal(editMessageTextCalls.length, 1);
   assert.equal(editMessageTextCalls[0]?.messageId, 321);
+  assert.equal(ctx.session.ui.screenMessageKind, "text");
 });
 
 test("home screen with the main menu GIF env set — sends an animation, not a duplicate text edit", async () => {
@@ -39,6 +40,7 @@ test("home screen with the main menu GIF env set — sends an animation, not a d
       assert.equal(sendAnimationCalls[0]?.fileId, "test_menu_anim");
       assert.equal(editMessageTextCalls.length, 0);
       assert.equal(replyCalls.length, 0);
+      assert.equal(ctx.session.ui.screenMessageKind, "media");
     },
   );
 });

@@ -11,6 +11,7 @@ import { BOT_CONSENT_VERSION } from "../../../domain/registration/registration.t
 import { safeEditScreen } from "../helpers/edit-screen/safe-edit-screen.js";
 import { withLoadingScreen } from "../helpers/with-loading.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
+import { setTrackedScreenMessage } from "../helpers/screen-message-state.js";
 import { ack } from "../helpers/ack.js";
 import { startRegistrationKeyboard } from "../ui/keyboards/registration.keyboard.js";
 import {
@@ -90,7 +91,7 @@ async function completeRegistration(ctx: BotContext, userId: number) {
     options: { parse_mode: "HTML" },
     previousMessageId: ctx.session.ui.screenMessageId,
     onSent: (id) => {
-      ctx.session.ui.screenMessageId = id;
+      setTrackedScreenMessage(ctx, id, "media");
     },
     fallback: () => safeEditScreen(ctx, text),
     event: "student_welcome",
