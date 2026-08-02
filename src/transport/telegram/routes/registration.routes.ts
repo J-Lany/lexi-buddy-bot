@@ -21,6 +21,8 @@ import { registrationConsentMessage } from "../ui/messages/registration-consent.
 import { setRequestUserId } from "../../../observability/request-context.js";
 import { logError } from "../../../observability/logger.js";
 import { legalUrls } from "../../../config/legal-urls.js";
+import { env } from "../../../config/env.js";
+import { sendMediaOrFallback } from "../helpers/media/send-media-or-fallback.js";
 
 const LOOKUP_RETRY_ATTEMPTS = 3;
 const LOOKUP_RETRY_DELAY_MS = 300;
@@ -77,7 +79,23 @@ async function completeRegistration(ctx: BotContext, userId: number) {
   ctx.session.userId = userId;
   setRequestUserId(userId);
 
-  await safeEditScreen(ctx, ctx.t("reg-success"));
+  const text = ctx.t("reg-success");
+
+  await sendMediaOrFallback({
+    api: ctx.api,
+    chatId: ctx.chat!.id,
+    fileId: env.studentMedia.welcomeGifFileId,
+    kind: "animation",
+    caption: text,
+    options: { parse_mode: "HTML" },
+    previousMessageId: ctx.session.ui.screenMessageId,
+    onSent: (id) => {
+      ctx.session.ui.screenMessageId = id;
+    },
+    fallback: () => safeEditScreen(ctx, text),
+    event: "student_welcome",
+  });
+
   delete ctx.session.reg;
 }
 

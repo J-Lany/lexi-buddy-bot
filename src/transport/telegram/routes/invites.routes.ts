@@ -10,6 +10,8 @@ import {
 import { ack } from "../helpers/ack.js";
 import { safeEditCallbackMessage } from "../helpers/edit-screen/safe-edit-callback-message.js";
 import { escapeHtml } from "../ui/helpers/html.js";
+import { env } from "../../../config/env.js";
+import { sendMediaOrFallback } from "../helpers/media/send-media-or-fallback.js";
 
 const inFlight = new Set<string>();
 
@@ -48,12 +50,30 @@ export function registerInvitesRoutes(
     try {
       await invites.respond({ inviteId, telegramId, accept });
 
-      const text = accept ? ctx.t("invite-accepted") : ctx.t("invite-declined");
+      if (accept) {
+        const text = ctx.t("invite-accepted");
+        const options = {
+          reply_markup: { inline_keyboard: [] },
+          parse_mode: "HTML" as const,
+        };
 
-      await safeEditCallbackMessage(ctx, text, {
-        reply_markup: { inline_keyboard: [] },
-        parse_mode: "HTML",
-      });
+        await sendMediaOrFallback({
+          api: ctx.api,
+          chatId: ctx.chat!.id,
+          fileId: env.studentMedia.teacherRequestAcceptedGifFileId,
+          kind: "animation",
+          caption: text,
+          options,
+          previousMessageId: ctx.callbackQuery?.message?.message_id,
+          fallback: () => safeEditCallbackMessage(ctx, text, options),
+          event: "student_teacher_request_accepted",
+        });
+      } else {
+        await safeEditCallbackMessage(ctx, ctx.t("invite-declined"), {
+          reply_markup: { inline_keyboard: [] },
+          parse_mode: "HTML",
+        });
+      }
     } catch (e: unknown) {
       if (e instanceof InviteAlreadyProcessedError) {
         await safeEditCallbackMessage(

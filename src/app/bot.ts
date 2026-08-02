@@ -16,6 +16,7 @@ import { registerProfileRoutes } from "../transport/telegram/routes/profile.rout
 import { registerCommandsRoutes } from "../transport/telegram/routes/commands.routes.js";
 import { registerStudentAssignmentsRoutes } from "../transport/telegram/routes/student-assignments.routes.js";
 import { registerLanguageRoutes } from "../transport/telegram/routes/language.routes.js";
+import { registerMediaRegistrationRoutes } from "../transport/telegram/routes/media-registration.routes.js";
 
 import { logInfo } from "../observability/logger.js";
 import { runWithRequestContext } from "../observability/request-context.js";
@@ -82,6 +83,7 @@ export function createBot(container: Container) {
   registerStudentAssignmentsRoutes(bot, deps);
   registerProfileRoutes(bot, deps);
   registerLanguageRoutes(bot, deps);
+  registerMediaRegistrationRoutes(bot);
 
   return bot;
 }

@@ -5,6 +5,8 @@ import { escapeHtml } from "../ui/helpers/html.js";
 import { i18n } from "../../../i18n/index.js";
 import { getUserLocale } from "../../../infra/session/get-user-locale.js";
 import { lessonAssignedKeyboard } from "../ui/keyboards/lesson-assigned.keyboard.js";
+import { env } from "../../../config/env.js";
+import { sendMediaOrFallback } from "../helpers/media/send-media-or-fallback.js";
 
 export type LessonAssignedNotification = {
   telegramId: number;
@@ -38,9 +40,22 @@ export class LessonAssignedNotificationSender {
       t("notif-lesson-open-hint"),
     ]);
 
-    await this.bot.api.sendMessage(chatId, text, {
+    const options = {
       reply_markup: lessonAssignedKeyboard(t, payload.lessonId),
-      parse_mode: "HTML",
+      parse_mode: "HTML" as const,
+    };
+
+    await sendMediaOrFallback({
+      api: this.bot.api,
+      chatId,
+      fileId: env.studentMedia.lessonAssignedGifFileId,
+      kind: "animation",
+      caption: text,
+      options,
+      fallback: async () => {
+        await this.bot.api.sendMessage(chatId, text, options);
+      },
+      event: "student_lesson_assigned",
     });
   }
 }

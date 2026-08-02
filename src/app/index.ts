@@ -47,6 +47,13 @@ async function main() {
     started_at: new Date().toISOString(),
   });
 
+  if (env.mediaRegistration.invalidAdminIdEntries.length > 0) {
+    logWarn("telegram_media_admin_ids_invalid_entries", {
+      invalid_count: env.mediaRegistration.invalidAdminIdEntries.length,
+      invalid_entries: env.mediaRegistration.invalidAdminIdEntries,
+    });
+  }
+
   const container = createContainer();
   const bot = createBot(container);
 
