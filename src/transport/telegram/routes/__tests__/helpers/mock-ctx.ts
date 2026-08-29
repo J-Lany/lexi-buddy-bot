@@ -30,6 +30,12 @@ export type DeleteMessageCall = {
   messageId: number;
 };
 
+export type EditMessageReplyMarkupCall = {
+  chatId: number;
+  messageId: number;
+  options: Record<string, unknown>;
+};
+
 export function createMockCtx(
   overrides: {
     from?: Partial<NonNullable<BotContext["from"]>>;
@@ -52,6 +58,15 @@ export function createMockCtx(
       fileId: string,
       options: Record<string, unknown>,
     ) => Promise<{ message_id: number }>;
+    editMessageReplyMarkupImpl?: (
+      chatId: number,
+      messageId: number,
+      options: Record<string, unknown>,
+    ) => Promise<unknown>;
+    replyImpl?: (
+      text: string,
+      options?: Record<string, unknown>,
+    ) => Promise<{ message_id: number }>;
   } = {},
 ) {
   const editMessageTextCalls: EditMessageTextCall[] = [];
@@ -60,6 +75,7 @@ export function createMockCtx(
   const sendAnimationCalls: SendAnimationCall[] = [];
   const sendVideoCalls: SendVideoCall[] = [];
   const deleteMessageCalls: DeleteMessageCall[] = [];
+  const editMessageReplyMarkupCalls: EditMessageReplyMarkupCall[] = [];
 
   let nextMediaMessageId = 2000;
 
@@ -85,6 +101,18 @@ export function createMockCtx(
     session,
     t: ((key: string) => key) as BotContext["t"],
     api: {
+      editMessageReplyMarkup: async (
+        chatId: number,
+        messageId: number,
+        options: Record<string, unknown> = {},
+      ) => {
+        editMessageReplyMarkupCalls.push({ chatId, messageId, options });
+        return overrides.editMessageReplyMarkupImpl?.(
+          chatId,
+          messageId,
+          options,
+        );
+      },
       editMessageText: async (
         chatId: number,
         messageId: number,
@@ -122,6 +150,9 @@ export function createMockCtx(
     },
     reply: async (text: string, options?: Record<string, unknown>) => {
       replyCalls.push({ text, options });
+      if (overrides.replyImpl) {
+        return overrides.replyImpl(text, options);
+      }
       return { message_id: 555 };
     },
     answerCallbackQuery: async (arg?: unknown) => {
@@ -137,6 +168,7 @@ export function createMockCtx(
     sendAnimationCalls,
     sendVideoCalls,
     deleteMessageCalls,
+    editMessageReplyMarkupCalls,
     /** All text shown to the user across edited screens and replies, in order. */
     allShownText(): string[] {
       return [

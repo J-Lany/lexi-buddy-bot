@@ -180,10 +180,10 @@ invite-accepted =
     Tu profesor ahora puede asignarte tareas.
 invite-declined = De acuerdo. Solicitud rechazada.
 invite-err-cannot-identify = No se pudo identificar al usuario.
-invite-err-already-processed = ✅ Esta solicitud ya ha sido procesada.
-invite-err-not-found = 😕 Solicitud no encontrada.
-invite-err-process-failed = No pudimos procesar la solicitud.
-invite-err-reason-prefix = Motivo:
+invite-err-already-accepted = ✅ Esta solicitud ya fue aceptada.
+invite-err-already-declined = Esta solicitud ya fue rechazada.
+invite-err-not-found = 😕 Solicitud no encontrada o ya no disponible.
+invite-err-process-failed = No pudimos procesar la solicitud. Inténtalo de nuevo más tarde.
 
 # Notifications
 notif-teacher-request-title = 👩‍🏫 <b>Solicitud del profesor</b>

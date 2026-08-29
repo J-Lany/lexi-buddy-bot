@@ -1,7 +1,14 @@
-export class InviteAlreadyProcessedError extends Error {
+export class InviteAlreadyAcceptedError extends Error {
   constructor() {
-    super("Invite already processed");
-    this.name = "InviteAlreadyProcessedError";
+    super("Teacher request already accepted");
+    this.name = "InviteAlreadyAcceptedError";
+  }
+}
+
+export class InviteAlreadyDeclinedError extends Error {
+  constructor() {
+    super("Teacher request already declined");
+    this.name = "InviteAlreadyDeclinedError";
   }
 }
 

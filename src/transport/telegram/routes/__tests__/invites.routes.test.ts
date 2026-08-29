@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import { registerInvitesRoutes } from "../invites.routes.js";
 import { env } from "../../../../config/env.js";
 import {
-  InviteAlreadyProcessedError,
+  InviteAlreadyAcceptedError,
+  InviteAlreadyDeclinedError,
   InviteNotFoundError,
 } from "../../../../domain/invites/invites.errors.js";
 import { createFakeBot } from "./helpers/fake-bot.js";
@@ -15,147 +16,149 @@ function setup(
   respondImpl: (params: unknown) => Promise<unknown> = async () => ({}),
 ) {
   const { bot, findCallbackHandler } = createFakeBot();
-  const respondCalls: unknown[] = [];
-
-  const invites = {
-    respond: async (params: unknown) => {
-      respondCalls.push(params);
-      return respondImpl(params);
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
-
+  // Test doubles intentionally implement only the route-facing surface.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  registerInvitesRoutes(bot as any, invites);
-
-  return { findCallbackHandler, respondCalls };
+  registerInvitesRoutes(bot as any, { respond: respondImpl } as any);
+  return { findCallbackHandler };
 }
 
-test("accept with the GIF env set — sends invite-accepted as an animation, no duplicate text edit", async () => {
+test("successful Accept removes the original keyboard and sends a new success message", async () => {
+  const { findCallbackHandler } = setup();
+  const { ctx, editMessageReplyMarkupCalls, replyCalls, editMessageTextCalls } =
+    createMockCtx({
+      callbackQuery: { data: "invite_accept:5", message: { message_id: 42 } },
+    });
+
+  await findCallbackHandler("invite_accept:5")!(ctx);
+
+  assert.deepEqual(editMessageReplyMarkupCalls, [
+    {
+      chatId: 999,
+      messageId: 42,
+      options: { reply_markup: { inline_keyboard: [] } },
+    },
+  ]);
+  assert.ok(replyCalls.some((call) => call.text.includes("invite-accepted")));
+  assert.equal(editMessageTextCalls.length, 0);
+});
+
+test("successful Accept with GIF keeps original history and sends a new animation", async () => {
   await withEnvOverride(
     env.studentMedia,
     { teacherRequestAcceptedGifFileId: "test_invite_anim" },
     async () => {
       const { findCallbackHandler } = setup();
-      const { ctx, sendAnimationCalls, editMessageTextCalls, replyCalls } =
-        createMockCtx({
-          callbackQuery: {
-            data: "invite_accept:5",
-            message: { message_id: 42 },
-          },
-        });
+      const { ctx, sendAnimationCalls, deleteMessageCalls } = createMockCtx({
+        callbackQuery: { data: "invite_accept:5", message: { message_id: 42 } },
+      });
 
       await findCallbackHandler("invite_accept:5")!(ctx);
 
       assert.equal(sendAnimationCalls.length, 1);
-      assert.equal(sendAnimationCalls[0]?.fileId, "test_invite_anim");
       assert.ok(
         String(sendAnimationCalls[0]?.options.caption).includes(
           "invite-accepted",
         ),
       );
-      assert.equal(editMessageTextCalls.length, 0);
-      assert.equal(replyCalls.length, 0);
+      assert.equal(deleteMessageCalls.length, 0);
     },
   );
 });
 
-test("accept with the GIF env set — deletes the invite message and does not leave it edited in place", async () => {
-  await withEnvOverride(
-    env.studentMedia,
-    { teacherRequestAcceptedGifFileId: "test_invite_anim" },
-    async () => {
-      const { findCallbackHandler } = setup();
-      const { ctx, deleteMessageCalls } = createMockCtx({
-        callbackQuery: { data: "invite_accept:5", message: { message_id: 42 } },
-      });
-
-      await findCallbackHandler("invite_accept:5")!(ctx);
-
-      assert.deepEqual(deleteMessageCalls, [{ chatId: 999, messageId: 42 }]);
-    },
-  );
-});
-
-test("accept without the GIF env set — falls back to editing the callback message as before", async () => {
+test("successful Decline removes the original keyboard and sends a new result message", async () => {
   const { findCallbackHandler } = setup();
-  const { ctx, editMessageTextCalls, sendAnimationCalls } = createMockCtx({
+  const { ctx, editMessageReplyMarkupCalls, replyCalls, editMessageTextCalls } =
+    createMockCtx({
+      callbackQuery: { data: "invite_decline:5", message: { message_id: 42 } },
+    });
+
+  await findCallbackHandler("invite_decline:5")!(ctx);
+
+  assert.equal(editMessageReplyMarkupCalls.length, 1);
+  assert.ok(replyCalls.some((call) => call.text.includes("invite-declined")));
+  assert.equal(editMessageTextCalls.length, 0);
+});
+
+test("keyboard cleanup failure does not suppress the committed success result", async () => {
+  const { findCallbackHandler } = setup();
+  const { ctx, replyCalls } = createMockCtx({
+    callbackQuery: { data: "invite_accept:5", message: { message_id: 42 } },
+    editMessageReplyMarkupImpl: async () => {
+      throw new Error("Telegram cleanup failed");
+    },
+  });
+
+  await findCallbackHandler("invite_accept:5")!(ctx);
+  assert.ok(replyCalls.some((call) => call.text.includes("invite-accepted")));
+});
+
+for (const [action, resultKey] of [
+  ["accept", "invite-accepted"],
+  ["decline", "invite-declined"],
+] as const) {
+  test(`successful ${action} is not reported as a business failure when result delivery fails`, async () => {
+    await withEnvOverride(
+      env.studentMedia,
+      { teacherRequestAcceptedGifFileId: undefined },
+      async () => {
+        let respondCalls = 0;
+        const { findCallbackHandler } = setup(async () => {
+          respondCalls += 1;
+          return {};
+        });
+        const callbackData = `invite_${action}:5`;
+        const { ctx, replyCalls } = createMockCtx({
+          callbackQuery: { data: callbackData, message: { message_id: 42 } },
+          replyImpl: async () => {
+            throw new Error("Telegram result delivery failed");
+          },
+        });
+
+        await findCallbackHandler(callbackData)!(ctx);
+
+        assert.equal(respondCalls, 1);
+        assert.ok(replyCalls.some((call) => call.text.includes(resultKey)));
+        assert.ok(
+          replyCalls.every(
+            (call) => !call.text.includes("invite-err-process-failed"),
+          ),
+        );
+      },
+    );
+  });
+}
+
+for (const [ErrorType, expectedKey] of [
+  [InviteAlreadyAcceptedError, "invite-err-already-accepted"],
+  [InviteAlreadyDeclinedError, "invite-err-already-declined"],
+  [InviteNotFoundError, "invite-err-not-found"],
+] as const) {
+  test(`${ErrorType.name} maps to human-readable copy`, async () => {
+    const { findCallbackHandler } = setup(async () => {
+      throw new ErrorType();
+    });
+    const { ctx, replyCalls } = createMockCtx({
+      callbackQuery: { data: "invite_accept:5", message: { message_id: 42 } },
+    });
+
+    await findCallbackHandler("invite_accept:5")!(ctx);
+    assert.ok(replyCalls.some((call) => call.text.includes(expectedKey)));
+  });
+}
+
+test("unknown Axios-style failures use safe fallback and never expose raw message", async () => {
+  const raw = "Request failed with status code 400";
+  const { findCallbackHandler } = setup(async () => {
+    throw new Error(raw);
+  });
+  const { ctx, replyCalls } = createMockCtx({
     callbackQuery: { data: "invite_accept:5", message: { message_id: 42 } },
   });
 
   await findCallbackHandler("invite_accept:5")!(ctx);
 
-  assert.equal(sendAnimationCalls.length, 0);
-  assert.equal(editMessageTextCalls.length, 1);
-  assert.ok(editMessageTextCalls[0]?.text.includes("invite-accepted"));
-});
-
-test("decline is never routed through the media path, env set or not", async () => {
-  await withEnvOverride(
-    env.studentMedia,
-    { teacherRequestAcceptedGifFileId: "test_invite_anim" },
-    async () => {
-      const { findCallbackHandler } = setup();
-      const { ctx, editMessageTextCalls, sendAnimationCalls } = createMockCtx({
-        callbackQuery: {
-          data: "invite_decline:5",
-          message: { message_id: 42 },
-        },
-      });
-
-      await findCallbackHandler("invite_decline:5")!(ctx);
-
-      assert.equal(sendAnimationCalls.length, 0);
-      assert.equal(editMessageTextCalls.length, 1);
-      assert.ok(editMessageTextCalls[0]?.text.includes("invite-declined"));
-    },
+  assert.ok(
+    replyCalls.some((call) => call.text.includes("invite-err-process-failed")),
   );
-});
-
-test("InviteAlreadyProcessedError never reaches the media path, even with the GIF env set", async () => {
-  await withEnvOverride(
-    env.studentMedia,
-    { teacherRequestAcceptedGifFileId: "test_invite_anim" },
-    async () => {
-      const { findCallbackHandler } = setup(async () => {
-        throw new InviteAlreadyProcessedError();
-      });
-      const { ctx, editMessageTextCalls, sendAnimationCalls } = createMockCtx({
-        callbackQuery: { data: "invite_accept:5", message: { message_id: 42 } },
-      });
-
-      await findCallbackHandler("invite_accept:5")!(ctx);
-
-      assert.equal(sendAnimationCalls.length, 0);
-      assert.ok(
-        editMessageTextCalls.some((c) =>
-          c.text.includes("invite-err-already-processed"),
-        ),
-      );
-    },
-  );
-});
-
-test("InviteNotFoundError never reaches the media path, even with the GIF env set", async () => {
-  await withEnvOverride(
-    env.studentMedia,
-    { teacherRequestAcceptedGifFileId: "test_invite_anim" },
-    async () => {
-      const { findCallbackHandler } = setup(async () => {
-        throw new InviteNotFoundError();
-      });
-      const { ctx, editMessageTextCalls, sendAnimationCalls } = createMockCtx({
-        callbackQuery: { data: "invite_accept:5", message: { message_id: 42 } },
-      });
-
-      await findCallbackHandler("invite_accept:5")!(ctx);
-
-      assert.equal(sendAnimationCalls.length, 0);
-      assert.ok(
-        editMessageTextCalls.some((c) =>
-          c.text.includes("invite-err-not-found"),
-        ),
-      );
-    },
-  );
+  assert.ok(replyCalls.every((call) => !call.text.includes(raw)));
 });

@@ -1,11 +1,13 @@
 import type { BackendApiService } from "../../infra/backend-api/backend-api.service.js";
 import {
-  InviteAlreadyProcessedError as ApiInviteAlreadyProcessedError,
+  InviteAlreadyAcceptedError as ApiInviteAlreadyAcceptedError,
+  InviteAlreadyDeclinedError as ApiInviteAlreadyDeclinedError,
   InviteNotFoundError as ApiInviteNotFoundError,
 } from "../../infra/backend-api/backend-api.errors.js";
 
 import {
-  InviteAlreadyProcessedError,
+  InviteAlreadyAcceptedError,
+  InviteAlreadyDeclinedError,
   InviteNotFoundError,
 } from "./invites.errors.js";
 
@@ -20,8 +22,11 @@ export class InvitesService {
     try {
       return await this.backend.respondToTeacherRequestFromTelegram(params);
     } catch (e: unknown) {
-      if (e instanceof ApiInviteAlreadyProcessedError) {
-        throw new InviteAlreadyProcessedError();
+      if (e instanceof ApiInviteAlreadyAcceptedError) {
+        throw new InviteAlreadyAcceptedError();
+      }
+      if (e instanceof ApiInviteAlreadyDeclinedError) {
+        throw new InviteAlreadyDeclinedError();
       }
       if (e instanceof ApiInviteNotFoundError) {
         throw new InviteNotFoundError();

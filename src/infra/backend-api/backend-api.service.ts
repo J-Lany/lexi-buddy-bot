@@ -13,12 +13,6 @@ import {
 
 import type { ConsentedRegistrationDraft } from "../../domain/registration/registration.types.js";
 
-import {
-  InviteAlreadyProcessedError,
-  InviteNotFoundError,
-} from "./backend-api.errors.js";
-import type { BackendErrorResponse } from "./backend-api.errors.js";
-
 import type {
   GetLessonAssignmentsResponse,
   GetStudentLessonsResponse,
@@ -30,6 +24,7 @@ import type {
 } from "./backend-api.types.js";
 
 import { toBackendApiError } from "./backend-api.error-mapper.js";
+import { toKnownTeacherRequestError } from "./teacher-request-error.mapper.js";
 
 type TelegramUserLookupResponse = {
   id: number;
@@ -177,12 +172,8 @@ export class BackendApiService {
       );
       return res.data;
     } catch (e: unknown) {
-      if (axios.isAxiosError<BackendErrorResponse>(e)) {
-        const status = e.response?.status;
-
-        if (status === 409) throw new InviteAlreadyProcessedError();
-        if (status === 404) throw new InviteNotFoundError();
-      }
+      const known = toKnownTeacherRequestError(e);
+      if (known) throw known;
 
       throw toBackendApiError(e, "RESPOND_FAILED", "Respond failed");
     }

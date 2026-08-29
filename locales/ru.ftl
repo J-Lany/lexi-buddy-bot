@@ -180,10 +180,10 @@ invite-accepted =
     Преподаватель теперь может назначать тебе задания.
 invite-declined = Хорошо. Запрос отклонён.
 invite-err-cannot-identify = Не удалось определить пользователя.
-invite-err-already-processed = ✅ Этот запрос уже был обработан.
-invite-err-not-found = 😕 Запрос не найден.
-invite-err-process-failed = Не удалось обработать запрос.
-invite-err-reason-prefix = Причина:
+invite-err-already-accepted = ✅ Этот запрос уже принят.
+invite-err-already-declined = Этот запрос уже отклонён.
+invite-err-not-found = 😕 Запрос не найден или больше недоступен.
+invite-err-process-failed = Не удалось обработать запрос. Попробуйте ещё раз позже.
 
 # Notifications
 notif-teacher-request-title = 👩‍🏫 <b>Запрос от преподавателя</b>

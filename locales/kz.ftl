@@ -180,10 +180,10 @@ invite-accepted =
     Ұстаз енді саған тапсырмалар тағайындай алады.
 invite-declined = Жарайды. Сұраныс қабылданбады.
 invite-err-cannot-identify = Пайдаланушыны анықтау мүмкін болмады.
-invite-err-already-processed = ✅ Бұл сұраныс бұрыннан өңделген.
-invite-err-not-found = 😕 Сұраныс табылмады.
-invite-err-process-failed = Сұранысты өңдеу мүмкін болмады.
-invite-err-reason-prefix = Себеп:
+invite-err-already-accepted = ✅ Бұл сұраныс қабылданған.
+invite-err-already-declined = Бұл сұраныс қабылданбаған.
+invite-err-not-found = 😕 Сұраныс табылмады немесе енді қолжетімсіз.
+invite-err-process-failed = Сұранысты өңдеу мүмкін болмады. Кейінірек қайталап көріңіз.
 
 # Notifications
 notif-teacher-request-title = 👩‍🏫 <b>Ұстаздың сұранысы</b>

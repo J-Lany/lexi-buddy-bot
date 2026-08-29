@@ -180,10 +180,10 @@ invite-accepted =
     Your teacher can now assign tasks to you.
 invite-declined = Ok. Request declined.
 invite-err-cannot-identify = Could not identify the user.
-invite-err-already-processed = ✅ This request has already been processed.
-invite-err-not-found = 😕 Request not found.
-invite-err-process-failed = We couldn't process the request.
-invite-err-reason-prefix = Reason:
+invite-err-already-accepted = ✅ This request has already been accepted.
+invite-err-already-declined = This request has already been declined.
+invite-err-not-found = 😕 Request not found or no longer available.
+invite-err-process-failed = We couldn't process the request. Please try again later.
 
 # Notifications
 notif-teacher-request-title = 👩‍🏫 <b>Teacher request</b>
