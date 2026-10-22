@@ -9,6 +9,10 @@ import { sendChat } from "../helpers/send-chat.js";
 import { ack } from "../helpers/ack.js";
 import { goTo } from "../helpers/go-to.js";
 import { beginNewScreen } from "../helpers/begin-new-screen.js";
+import {
+  CHOICE_CALLBACK_TRIGGER,
+  parseChoiceCallback,
+} from "../helpers/assignment-choice-callback.js";
 
 import { AssignmentRunFlow } from "../../../application/assignment-run/assignment-run.flow.js";
 import { logError, logInfo } from "../../../observability/logger.js";
@@ -84,23 +88,15 @@ export function registerStudentAssignmentsRoutes(
     }
   });
 
-  bot.callbackQuery(/^assignment_choose:.+$/, async (ctx) => {
-    const data = ctx.callbackQuery.data;
-    const m = /^assignment_choose:([^:]+):(\d+):(\d+)$/.exec(data);
-    if (!m) {
+  bot.callbackQuery(CHOICE_CALLBACK_TRIGGER, async (ctx) => {
+    const parsed = parseChoiceCallback(ctx.callbackQuery.data);
+    const choice = parsed ? flow.resolveChoiceCallback(ctx, parsed) : null;
+    if (!choice) {
       await ack(ctx, ctx.t("stale-assignment"));
       return;
     }
 
-    const sessionId = m[1];
-    const questionId = Number(m[2]);
-    const answerId = Number(m[3]);
-
-    const ok = await flow.answerChoice(ctx, {
-      questionId,
-      answerId,
-      ...(sessionId ? { sessionId } : {}),
-    });
+    const ok = await flow.answerChoice(ctx, choice);
 
     if (!ok) {
       await ack(ctx, ctx.t("stale-assignment"));
