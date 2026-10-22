@@ -17,6 +17,10 @@ import {
 import { getCorrectAnswerText } from "../../domain/assignment-run/correct-answer.js";
 import { isCorrectTextAnswer } from "../../domain/assignment-run/answer.check.js";
 import { shuffled } from "../../domain/assignment-run/shuffle.js";
+import {
+  runTokenOf,
+  type ChoiceCallback,
+} from "../../transport/telegram/helpers/assignment-choice-callback.js";
 
 export class AssignmentRunFlow {
   async begin(ctx: BotContext, deps: RenderDeps, assignmentId: number) {
@@ -76,6 +80,34 @@ export class AssignmentRunFlow {
     };
 
     navReplaceTop(ctx, { name: "assignment_question" });
+  }
+
+  /**
+   * Maps a pressed answer button back to question/answer ids of the active
+   * run. Returns null for a button that cannot belong to this run; the
+   * remaining guards (current question, repeat press) stay in answerChoice.
+   */
+  resolveChoiceCallback(
+    ctx: BotContext,
+    cb: ChoiceCallback,
+  ): { sessionId: string; questionId: number; answerId: number } | null {
+    if (cb.format === "legacy") {
+      return {
+        sessionId: cb.sessionId,
+        questionId: cb.questionId,
+        answerId: cb.answerId,
+      };
+    }
+
+    const run = ctx.session.assignmentRun;
+    if (!run) return null;
+    if (cb.runToken !== runTokenOf(run.clientSessionId)) return null;
+
+    const q = run.assignment.questions[cb.questionIndex];
+    const a = q?.answers[cb.answerIndex];
+    if (!q || !a) return null;
+
+    return { sessionId: run.clientSessionId, questionId: q.id, answerId: a.id };
   }
 
   async answerChoice(
