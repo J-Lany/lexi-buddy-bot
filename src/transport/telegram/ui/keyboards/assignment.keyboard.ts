@@ -2,6 +2,7 @@ import { InlineKeyboard } from "grammy";
 import type { InternalAssignmentQuestionDto } from "../../../../infra/backend-api/backend-api.types.js";
 import { choiceEmoji } from "../../helpers/choice-emoji.js";
 import type { Translator } from "../helpers/copy.js";
+import { encodeChoiceCallback } from "../../helpers/assignment-choice-callback.js";
 
 export function assignmentIntroKeyboard(t: Translator) {
   return new InlineKeyboard()
@@ -11,19 +12,23 @@ export function assignmentIntroKeyboard(t: Translator) {
 
 export function assignmentQuestionKeyboard(params: {
   sessionId: string;
+  questionIndex: number;
   question: InternalAssignmentQuestionDto;
   mode: "choice" | "text";
 }) {
-  const { sessionId, question, mode } = params;
+  const { sessionId, questionIndex, question, mode } = params;
 
   const kb = new InlineKeyboard();
 
   if (mode === "choice") {
     for (let i = 0; i < question.answers.length; i++) {
-      const a = question.answers[i]!;
       kb.text(
         choiceEmoji(i),
-        `assignment_choose:${sessionId}:${question.id}:${a.id}`,
+        encodeChoiceCallback({
+          clientSessionId: sessionId,
+          questionIndex,
+          answerIndex: i,
+        }),
       );
     }
   }

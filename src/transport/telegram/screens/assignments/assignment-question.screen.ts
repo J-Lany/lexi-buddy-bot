@@ -45,6 +45,7 @@ export async function renderAssignmentQuestionScreen(
     {
       reply_markup: assignmentQuestionKeyboard({
         sessionId: run.clientSessionId,
+        questionIndex: run.index,
         question: q,
         mode,
       }),
